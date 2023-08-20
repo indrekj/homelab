@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: bitcoind
+  name: bitcoind
+spec:
+  selector:
+    app: bitcoind
+  ports:
+    - name: rpc
+      port: 8332
+      protocol: TCP
+      targetPort: rpc
+    - name: peer-to-peer
+      port: 8333
+      protocol: TCP
+      targetPort: peer-to-peer
+    - name: exporter
+      port: 9332
+      protocol: TCP
+      targetPort: exporter
+  allocateLoadBalancerNodePorts: true
+  type: LoadBalancer

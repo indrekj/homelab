@@ -1,0 +1,1 @@
+claimToken: ref+file://secrets.yaml#/plex/claimToken

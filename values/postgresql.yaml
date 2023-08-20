@@ -1,0 +1,24 @@
+auth:
+  # User: postgres
+  postgresPassword: ref+file://secrets.yaml#/postgresql/postgresPassword
+
+fullnameOverride: pg
+
+image:
+  repository: bitnami/postgresql
+  tag: 15.3.0-debian-11-r24
+
+primary:
+  service:
+    # Temporary
+    type: LoadBalancer
+  extendedConfiguration: |
+    # Max memory usage = shared_buffers + (temp_buffers + work_mem) * max_connections
+    shared_buffers = 16MB                  # min 128kB, defaults to 32MB
+    temp_buffers = 4MB                     # min 800kB, defaults to 8MB
+    work_mem = 2MB                         # min 64kB, defaults to 4MB
+    maintenance_work_mem = 16MB            # min 1MB, defaults to 64MB
+    max_connections = 100
+
+# metrics:
+#   enabled: true

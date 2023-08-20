@@ -1,0 +1,3 @@
+rpc:
+  user: ref+file://secrets.yaml#/bitcoind/rpcUser
+  password: ref+file://secrets.yaml#/bitcoind/rpcPassword

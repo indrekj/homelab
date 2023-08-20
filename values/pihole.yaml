@@ -1,0 +1,33 @@
+adminPassword: ref+file://secrets.yaml#/pihole/adminPassword
+
+DNS1: "1.1.1.1"
+DNS2: "8.8.8.8"
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+
+customVolumes:
+  enabled: true
+  config:
+    hostPath:
+      path: "/mnt/ssd-storage/homelab/pihole"
+
+ingress:
+  enabled: true
+  annotations:
+    cert-manager.io/issuer: letsencrypt
+    kubernetes.io/ingress.class: "traefik"
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+  hosts:
+    - pihole.urgas.eu
+  tls:
+    - secretName: urgas-eu-tls
+
+serviceDns:
+  type: LoadBalancer
+
+podDnsConfig:
+  enabled: false

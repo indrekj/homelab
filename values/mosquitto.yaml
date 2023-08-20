@@ -1,0 +1,14 @@
+serviceAccount:
+  create: false
+
+persistence:
+  # We're not using persistent storage
+  enabled: false
+
+service:
+  type: LoadBalancer
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 512Mi

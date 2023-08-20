@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: urgas-eu
+spec:
+  secretName: urgas-eu-tls
+  issuerRef:
+    name: letsencrypt
+  duration: 2160h # 90d
+  renewBefore: 720h # 30d before SSL will expire, renew it
+  dnsNames:
+    - "urgas.eu"
+    - "*.urgas.eu"

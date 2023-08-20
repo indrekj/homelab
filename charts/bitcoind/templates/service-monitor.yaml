@@ -1,0 +1,10 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: bitcoind
+spec:
+  selector:
+    matchLabels:
+      app: bitcoind
+  endpoints:
+    - port: exporter

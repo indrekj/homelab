@@ -1,0 +1,71 @@
+repositories:
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
+  - name: mojo2600
+    url: https://mojo2600.github.io/pihole-kubernetes/
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+  - name: t3n
+    url: https://storage.googleapis.com/t3n-helm-charts
+  - name: traefik
+    url: https://helm.traefik.io/traefik
+
+helmDefaults:
+  kubeContext: homelab
+
+templates:
+  local-chart: &local-chart
+    namespace: homelab
+    missingFileHandler: Debug
+    values:
+      - "./values/{{`{{ .Release.Name }}`}}.yaml"
+
+  remote-chart: &remote-chart
+    namespace: homelab
+    values:
+      - "./values/{{`{{ .Release.Name }}`}}.yaml"
+
+releases:
+  # The prometheus install will fail if there are any other previous prometheus
+  # stuff installed. I had to do:
+  #   kubectl delete ns prometheus-operator
+  - name: kps
+    chart: prometheus-community/kube-prometheus-stack
+    version: 48.3.1
+    <<: *remote-chart
+
+  - name: static
+    chart: ./charts/static
+    <<: *local-chart
+
+  - name: bitcoind
+    chart: ./charts/bitcoind
+    <<: *local-chart
+
+  - name: grafana
+    chart: bitnami/grafana
+    <<: *remote-chart
+
+  - name: home-assistant
+    chart: ./charts/home-assistant
+    <<: *local-chart
+
+  - name: mosquitto
+    chart: t3n/mosquitto
+    <<: *remote-chart
+
+  - name: pihole
+    chart: mojo2600/pihole
+    <<: *remote-chart
+
+  - name: plex
+    chart: ./charts/plex
+    <<: *local-chart
+
+  - name: postgresql
+    chart: bitnami/postgresql
+    <<: *remote-chart
+
+  - name: traefik
+    chart: traefik/traefik
+    <<: *remote-chart

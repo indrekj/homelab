@@ -1,0 +1,11 @@
+bitcoind:
+  image: lncm/bitcoind:v25.0
+  storePath: /mnt/hdd-storage/bitcoin
+
+exporter:
+  image: jvstein/bitcoin-prometheus-exporter:v0.7.0
+
+rpc:
+  host: localhost
+  user: ''
+  password: ''

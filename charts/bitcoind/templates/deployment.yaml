@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: bitcoind
+  name: bitcoind
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bitcoind
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: bitcoind
+    spec:
+      containers:
+        - name: bitcoind
+          image: {{ .Values.bitcoind.image | quote }}
+          resources:
+            limits:
+              cpu: 2000m
+              memory: 2048Mi
+          ports:
+            - name: rpc
+              containerPort: 8332
+            - name: peer-to-peer
+              containerPort: 8333
+          readinessProbe:
+            tcpSocket:
+              port: 8332
+          livenessProbe:
+            tcpSocket:
+              port: 8332
+          securityContext:
+            allowPrivilegeEscalation: false
+          volumeMounts:
+            - mountPath: /data/.bitcoin
+              name: blockhainstorage
+            - mountPath: /shared
+              name: shared
+            - mountPath: /dev/shm
+              name: shm
+            - mountPath: /tmp
+              name: temp
+            - mountPath: /var/logs
+              name: varlogs
+        - name: exporter
+          image: {{ .Values.exporter.image | quote }}
+          env:
+            - name: BITCOIN_RPC_HOST
+              value: localhost
+            - name: BITCOIN_RPC_USER
+              value: {{ .Values.rpc.user }}
+            - name: BITCOIN_RPC_PASSWORD
+              value: {{ .Values.rpc.password }}
+          ports:
+            - name: exporter
+              containerPort: 9332
+              protocol: TCP
+      volumes:
+        - hostPath:
+            path: {{ .Values.bitcoind.storePath }}
+          name: blockhainstorage
+        - emptyDir: {}
+          name: shared
+        - emptyDir:
+            medium: Memory
+          name: shm
+        - emptyDir: {}
+          name: temp
+        - emptyDir: {}
+          name: varlogs

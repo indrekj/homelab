@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: home-assistant
+  name: home-assistant
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: home-assistant
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: home-assistant
+    spec:
+      containers:
+        - name: home-assistant
+          env:
+            - name: PUID
+              value: "568"
+            - name: USER_ID
+              value: "568"
+            - name: UID
+              value: "568"
+            - name: UMASK
+              value: "2"
+            - name: UMASK_SET
+              value: "2"
+            - name: PGID
+              value: "568"
+            - name: GROUP_ID
+              value: "568"
+            - name: GID
+              value: "568"
+            - name: TZ
+              value: Europe/Tallinn
+          image: tccr.io/truecharts/home-assistant:2023.2.5@sha256:551ee82347af025e02a7fc27e526d0c4f05e8b29e7bbe948edc6bc12d306fb5f
+          resources:
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+          ports:
+            - containerPort: 8123
+              name: main
+              protocol: TCP
+          startupProbe:
+            failureThreshold: 60
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            tcpSocket:
+              port: 8123
+            timeoutSeconds: 2
+          readinessProbe:
+            tcpSocket:
+              port: 8123
+          livenessProbe:
+            tcpSocket:
+              port: 8123
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {}
+            privileged: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+          volumeMounts:
+          - mountPath: /config
+            name: config
+          - mountPath: /shared
+            name: shared
+          - mountPath: /dev/shm
+            name: shm
+          - mountPath: /tmp
+            name: temp
+          - mountPath: /var/logs
+            name: varlogs
+      dnsConfig:
+        options:
+        - name: ndots
+          value: "1"
+      dnsPolicy: ClusterFirst
+      securityContext:
+        fsGroup: 568
+        fsGroupChangePolicy: OnRootMismatch
+        runAsGroup: 0
+        runAsUser: 0
+        supplementalGroups:
+          - 568
+          - 44
+          - 107
+      volumes:
+        - name: config
+          hostPath:
+            path: /mnt/ssd-storage/homelab/home-assistant/config
+        - name: shared
+          emptyDir: {}
+        - name: shm
+          emptyDir:
+            medium: Memory
+        - name: temp
+          emptyDir: {}
+        - name: varlogs
+          emptyDir: {}
