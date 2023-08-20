@@ -31,7 +31,7 @@ releases:
   #   kubectl delete ns prometheus-operator
   - name: kps
     chart: prometheus-community/kube-prometheus-stack
-    version: 48.3.1
+    version: ^48.3
     <<: *remote-chart
 
   - name: static
@@ -44,6 +44,7 @@ releases:
 
   - name: grafana
     chart: bitnami/grafana
+    version: ^9.0
     <<: *remote-chart
 
   - name: home-assistant
@@ -52,10 +53,12 @@ releases:
 
   - name: mosquitto
     chart: t3n/mosquitto
+    version: ^2.4
     <<: *remote-chart
 
   - name: pihole
     chart: mojo2600/pihole
+    version: ^2.18
     <<: *remote-chart
 
   - name: plex
@@ -64,8 +67,10 @@ releases:
 
   - name: postgresql
     chart: bitnami/postgresql
+    version: ^12.8
     <<: *remote-chart
 
   - name: traefik
     chart: traefik/traefik
+    version: ^24.0
     <<: *remote-chart
