@@ -9,6 +9,8 @@ repositories:
     url: https://storage.googleapis.com/t3n-helm-charts
   - name: traefik
     url: https://helm.traefik.io/traefik
+  - name: plex
+    url: https://raw.githubusercontent.com/plexinc/pms-docker/gh-pages
 
 helmDefaults:
   kubeContext: homelab
@@ -62,8 +64,8 @@ releases:
     <<: *remote-chart
 
   - name: plex
-    chart: ./charts/plex
-    <<: *local-chart
+    chart: plex/plex-media-server
+    <<: *remote-chart
 
   - name: postgresql
     chart: bitnami/postgresql

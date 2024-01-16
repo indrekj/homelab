@@ -1,1 +1,25 @@
-claimToken: ref+file://secrets.yaml#/plex/claimToken
+nameOverride: plex
+
+extraEnv:
+  PLEX_CLAIM: ref+file://secrets.yaml#/plex/claimToken
+  ALLOWED_NETWORKS: "172.16.0.0/12,10.0.0.0/8,192.168.0.0/16"
+
+ingress:
+  enabled: true
+  ingressClassName: traefik
+  annotations:
+    cert-manager.io/issuer: letsencrypt
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+  url: https://plex.urgas.eu
+  # extraTls is not supported. Manually copied urgas-eu-tls to plex-ingress-lets-encrypt.
+
+extraVolumes:
+  - name: media
+    hostPath:
+      path: /mnt/hdd-storage/media
+
+extraVolumeMounts:
+  - name: media
+    mountPath: /media
+    readOnly: true
