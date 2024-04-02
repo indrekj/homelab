@@ -37,7 +37,7 @@ spec:
               value: "568"
             - name: TZ
               value: Europe/Tallinn
-          image: tccr.io/truecharts/home-assistant:2023.2.5@sha256:551ee82347af025e02a7fc27e526d0c4f05e8b29e7bbe948edc6bc12d306fb5f
+          image: homeassistant/home-assistant:2023.12.3@sha256:128abdfe0b0a82df32a0a192032a86d113564ce2ce5ad470c47d551a53bf5db4
           resources:
             limits:
               cpu: 2000m
