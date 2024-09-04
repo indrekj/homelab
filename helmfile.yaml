@@ -65,6 +65,7 @@ releases:
 
   - name: plex
     chart: plex/plex-media-server
+    version: ^0.4
     <<: *remote-chart
 
   - name: postgresql
