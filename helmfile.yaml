@@ -3,8 +3,6 @@ repositories:
     url: https://charts.bitnami.com/bitnami
   - name: mojo2600
     url: https://mojo2600.github.io/pihole-kubernetes/
-  - name: prometheus-community
-    url: https://prometheus-community.github.io/helm-charts
   - name: t3n
     url: https://storage.googleapis.com/t3n-helm-charts
   - name: traefik
@@ -28,14 +26,6 @@ templates:
       - "./values/{{`{{ .Release.Name }}`}}.yaml"
 
 releases:
-  # The prometheus install will fail if there are any other previous prometheus
-  # stuff installed. I had to do:
-  #   kubectl delete ns prometheus-operator
-  - name: kps
-    chart: prometheus-community/kube-prometheus-stack
-    version: ^48.3
-    <<: *remote-chart
-
   - name: static
     chart: ./charts/static
     <<: *local-chart
@@ -43,11 +33,6 @@ releases:
   - name: bitcoind
     chart: ./charts/bitcoind
     <<: *local-chart
-
-  - name: grafana
-    chart: bitnami/grafana
-    version: ^9.0
-    <<: *remote-chart
 
   - name: home-assistant
     chart: ./charts/home-assistant
