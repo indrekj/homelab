@@ -15,7 +15,10 @@ ingress:
     traefik.ingress.kubernetes.io/router.tls: "true"
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
   url: https://plex.urgas.eu
-  # extraTls is not supported. Manually copied urgas-eu-tls to plex-ingress-lets-encrypt.
+  tls:
+    - hosts:
+        - plex.urgas.eu
+      secretName: urgas-eu-tls
 
 extraVolumes:
   - name: media
