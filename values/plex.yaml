@@ -1,5 +1,9 @@
 nameOverride: plex
 
+image:
+  # Until https://github.com/plexinc/pms-docker/commit/85364963a51bfb9bd89327036f50a4e6f0479d70 is released
+  tag: 1.41.6.9685-d301f511a
+
 pms:
   configStorage: 3Gi
 
