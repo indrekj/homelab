@@ -1,0 +1,25 @@
+services:
+  home-assistant:
+    image: homeassistant/home-assistant:2024.3.3
+    container_name: home-assistant
+    restart: unless-stopped
+    environment:
+      TZ: Europe/Tallinn
+    volumes:
+      - /mnt/ssd-storage/homelab/home-assistant/config:/config
+    networks:
+      - homelab
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.home-assistant.rule=Host(`homeassistant.urgas.eu`)
+      - traefik.http.routers.home-assistant.entrypoints=websecure
+      - traefik.http.services.home-assistant.loadbalancer.server.port=8123
+
+networks:
+  homelab:
+    external: true

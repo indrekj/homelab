@@ -1,0 +1,27 @@
+services:
+  plex:
+    image: plexinc/pms-docker:1.41.6.9685-d301f511a
+    container_name: plex
+    restart: unless-stopped
+    environment:
+      TZ: Europe/Tallinn
+      PLEX_CLAIM: ${PLEX_CLAIM:-}
+      ALLOWED_NETWORKS: "172.16.0.0/12,10.0.0.0/8,192.168.0.0/16"
+    ports:
+      # Direct access port so LAN clients can reach Plex without going
+      # through Traefik.
+      - "32400:32400"
+    volumes:
+      - /mnt/ssd-storage/homelab/plex/config:/config
+      - /mnt/hdd-storage/media:/media:ro
+    networks:
+      - homelab
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.plex.rule=Host(`plex.urgas.eu`)
+      - traefik.http.routers.plex.entrypoints=websecure
+      - traefik.http.services.plex.loadbalancer.server.port=32400
+
+networks:
+  homelab:
+    external: true

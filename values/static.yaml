@@ -1,5 +1,0 @@
-cloudflare:
-  apiToken: ref+file://secrets.yaml#/static/cloudflare/apiToken
-
-letsencrypt:
-  email: ref+file://secrets.yaml#/static/letsencrypt/email

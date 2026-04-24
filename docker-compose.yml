@@ -1,0 +1,14 @@
+# Aggregates all services for a single `docker compose up` at the repo root.
+# Each services/<name>/docker-compose.yml also works standalone — paste into
+# TrueNAS "Custom App" or run `docker compose up` from the service directory.
+#
+# Bootstrap once per host:
+#   docker network create homelab
+#   install -m 600 /dev/null /mnt/ssd-storage/homelab/traefik/acme.json
+
+include:
+  - services/traefik/docker-compose.yml
+  - services/home-assistant/docker-compose.yml
+  - services/mosquitto/docker-compose.yml
+  - services/plex/docker-compose.yml
+  - services/postgresql/docker-compose.yml

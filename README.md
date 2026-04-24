@@ -1,61 +1,75 @@
 # Homelab
 
-I'm using TrueNAS Scale for my home server (aka homelab). TrueNAS Scale has a
-concept of "Apps" which allows one to quickly install different services (e.g.
-pihole, plex, etc) to the server through the TrueNAS Scale UI. There are even
-more applications when using [TrueCharts][5].
+Docker Compose manifests for my TrueNAS Community Edition.
 
-I was using [TrueCharts][5] happily until they made a backward-incompatible
-change which meant that I had to reinstall all the apps. Because of using
-PVC's this was very annoying. I really didn't want to do this.
+This is not meant for public consumption — everything is tuned for my hardware
+and domain. I publish it as a backup and so others can crib from it.
 
-I decided that I didn't want to rely on TrueNAS and TrueCharts charts anymore.
-Under the hood, both are just applying [Helm][2] charts. I don't really require
-a nice UI and would actually prefer keeping my things in code. This is how this
-repository was born.
+## Services
 
-Another benefit is that if I decide not to use TrueNAS Scale anymore then I
-just need a server that has a Kubernetes cluster to redeploy everything.
+| Service        | Image                                          | Exposed on          |
+|----------------|-----------------------------------------------|---------------------|
+| traefik        | `traefik:v3.3`                                | `:80`, `:443`       |
+| home-assistant | `homeassistant/home-assistant:2024.3.3`       | `homeassistant.urgas.eu` via Traefik |
+| mosquitto      | `eclipse-mosquitto:2`                         | LAN `:1883`         |
+| plex           | `plexinc/pms-docker`                          | `plex.urgas.eu` via Traefik, LAN `:32400` |
+| postgresql     | `bitnamilegacy/postgresql:15.3.0-debian-11-r24` | internal only (`homelab` network) |
 
-I'm using [helmfile][1] to manage helm charts. Some of the charts are from
-remote repositories. Some of the charts I built myself.
+Traefik handles TLS for everything under `urgas.eu` using a Let's Encrypt
+wildcard cert obtained via the Cloudflare DNS-01 challenge.
 
-This is not really meant directly for public usage. Everything is configured
-for me. I'm also not updating charts and versions very often. I made it public
-so that I can put it to GitHub for a backup and for inspiration for people.
+## Layout
 
-## Dependencies
+```
+.
+├── docker-compose.yml           # aggregates all services via `include:`
+├── .env                         # secrets (gitignored) — see .env.example
+└── services/
+    ├── traefik/docker-compose.yml
+    ├── home-assistant/docker-compose.yml
+    ├── mosquitto/
+    │   ├── docker-compose.yml
+    │   └── mosquitto.conf
+    ├── plex/docker-compose.yml
+    └── postgresql/
+        ├── docker-compose.yml
+        └── override.conf
+```
 
-* [helmfile][1]
-* [helm][2]
-* [vals][3]
-* kubectl
+Each `services/<name>/docker-compose.yml` is self-contained — you can paste it
+straight into TrueNAS's "Install Custom App" UI, or run `docker compose up`
+from that directory. The root `docker-compose.yml` just `include:`s all of them
+for convenience.
 
-`kubectl` has to be configured so that it can access TrueNAS Scale server. See
-[this][4] on how to expose kubernetes API.
+## Bootstrap
+
+One-time setup on the TrueNAS host:
+
+```sh
+# Shared network that all services attach to
+docker network create homelab
+
+# Persistent directories (bind mounts)
+mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,postgresql/data}
+
+# acme.json must be mode 600 or Traefik refuses to use it
+install -m 600 /dev/null /mnt/ssd-storage/homelab/traefik/acme.json
+
+# Secrets
+cp .env.example .env
+$EDITOR .env
+```
+
+## Running
+
+```sh
+docker compose up -d                          # start everything
+docker compose down                           # stop everything
+docker compose pull && docker compose up -d   # update images
+```
 
 ## Secrets
 
-For secrets I'm using [vals][1]. This integrates well with helmfile. The
-secrets themselves are kept in a file called `secrets.yaml` in the root
-directory. This file is not commited to the git repository.
-
-## Usage
-
-To see what has changed before applying the changes:
-
-```
-helmfile --kube-context=homelab diff .
-```
-
-To install (apply) everything run:
-
-```
-helmfile --kube-context=homelab apply .
-```
-
-[1]: https://github.com/helmfile/helmfile
-[2]: https://github.com/helm/helm
-[3]: https://github.com/helmfile/vals
-[4]: https://gist.github.com/indrekj/8a8121b4964a56cdbb5f6f71d3319457
-[5]: https://truecharts.org/
+Secrets live in a gitignored `.env` file at the repo root. See `.env.example`
+for the full list. Compose expands `${VAR}` references in each service file
+from this one location.

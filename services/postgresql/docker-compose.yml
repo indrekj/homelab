@@ -1,0 +1,18 @@
+services:
+  postgresql:
+    image: bitnamilegacy/postgresql:15.3.0-debian-11-r24
+    container_name: postgresql
+    restart: unless-stopped
+    environment:
+      POSTGRESQL_PASSWORD: ${POSTGRESQL_PASSWORD}
+    volumes:
+      - /mnt/ssd-storage/homelab/postgresql/data:/bitnami/postgresql
+      - ./override.conf:/bitnami/postgresql/conf/conf.d/override.conf:ro
+    # No ports published — reachable only from other services on the
+    # homelab network via hostname `postgresql` on port 5432.
+    networks:
+      - homelab
+
+networks:
+  homelab:
+    external: true
