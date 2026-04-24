@@ -1,8 +1,6 @@
 repositories:
   - name: bitnami
     url: https://charts.bitnami.com/bitnami
-  - name: mojo2600
-    url: https://mojo2600.github.io/pihole-kubernetes/
   - name: t3n
     url: https://storage.googleapis.com/t3n-helm-charts
   - name: traefik
@@ -30,10 +28,6 @@ releases:
     chart: ./charts/static
     <<: *local-chart
 
-  - name: bitcoind
-    chart: ./charts/bitcoind
-    <<: *local-chart
-
   - name: home-assistant
     chart: ./charts/home-assistant
     <<: *local-chart
@@ -41,11 +35,6 @@ releases:
   - name: mosquitto
     chart: t3n/mosquitto
     version: ^2.4
-    <<: *remote-chart
-
-  - name: pihole
-    chart: mojo2600/pihole
-    version: ^2.18
     <<: *remote-chart
 
   - name: plex
