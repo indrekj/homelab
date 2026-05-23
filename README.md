@@ -60,6 +60,20 @@ cp .env.example .env
 $EDITOR .env
 ```
 
+## Deployment
+
+Sync files to the target server:
+
+```sh
+rsync -avz --exclude '.git' ./ root@192.168.1.55:/mnt/ssd-storage/homelab-repo
+```
+
+Update services on the remote server:
+
+```sh
+ssh root@192.168.1.55 "cd /mnt/ssd-storage/homelab-repo && docker compose pull && docker compose up -d"
+```
+
 ## Running
 
 ```sh
