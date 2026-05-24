@@ -9,6 +9,8 @@ services:
       - /mnt/ssd-storage/homelab/home-assistant/config:/config
     networks:
       - homelab
+    ports:
+      - "5683:5683/udp"
     deploy:
       resources:
         limits:
