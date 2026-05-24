@@ -87,3 +87,11 @@ docker compose pull && docker compose up -d   # update images
 Secrets live in a gitignored `.env` file at the repo root. See `.env.example`
 for the full list. Compose expands `${VAR}` references in each service file
 from this one location.
+
+## Home Assistant
+
+### Shelly Devices
+
+For Shelly devices using **CoIoT**, use the following peer address: `192.168.1.55:5683`
+
+Newer Shelly devices (Generation 2 and 3) do not support CoIoT. For these devices, use **Mosquitto (MQTT)** or **WebSockets** instead.
