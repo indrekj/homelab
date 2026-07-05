@@ -1,0 +1,37 @@
+# Local voice pipeline for Home Assistant Assist (Wyoming protocol).
+# No published ports — Home Assistant reaches these over the homelab
+# network as whisper:10300 and piper:10200.
+services:
+  whisper:
+    image: rhasspy/wyoming-whisper:3.3.1
+    container_name: whisper
+    restart: unless-stopped
+    command: --model base-int8 --language en
+    volumes:
+      - /mnt/ssd-storage/homelab/voice-assist/whisper:/data
+    networks:
+      - homelab
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1G
+
+  piper:
+    image: rhasspy/wyoming-piper:2.2.2
+    container_name: piper
+    restart: unless-stopped
+    command: --voice en_US-lessac-medium
+    volumes:
+      - /mnt/ssd-storage/homelab/voice-assist/piper:/data
+    networks:
+      - homelab
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
+networks:
+  homelab:
+    external: true

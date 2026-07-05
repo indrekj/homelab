@@ -12,3 +12,4 @@ include:
   - services/mosquitto/docker-compose.yml
   - services/plex/docker-compose.yml
   - services/postgresql/docker-compose.yml
+  - services/voice-assist/docker-compose.yml
