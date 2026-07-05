@@ -6,7 +6,7 @@ services:
     image: rhasspy/wyoming-whisper:3.3.1
     container_name: whisper
     restart: unless-stopped
-    command: --model base-int8 --language en
+    command: --model small-int8 --language en
     volumes:
       - /mnt/ssd-storage/homelab/voice-assist/whisper:/data
     networks:
@@ -14,8 +14,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "2.0"
-          memory: 1G
+          cpus: "4.0"
+          memory: 2G
 
   piper:
     image: rhasspy/wyoming-piper:2.2.2
