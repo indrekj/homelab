@@ -6,7 +6,7 @@ services:
     image: rhasspy/wyoming-whisper:3.3.1
     container_name: whisper
     restart: unless-stopped
-    command: --model small-int8 --language en
+    command: --model small.en --compute-type int8 --language en
     volumes:
       - /mnt/ssd-storage/homelab/voice-assist/whisper:/data
     networks:
