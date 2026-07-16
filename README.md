@@ -14,6 +14,7 @@ and domain. I publish it as a backup and so others can crib from it.
 | mosquitto      | `eclipse-mosquitto:2`                         | LAN `:1883`         |
 | plex           | `plexinc/pms-docker`                          | `plex.urgas.eu` via Traefik, LAN `:32400` |
 | postgresql     | `bitnamilegacy/postgresql:15.3.0-debian-11-r24` | internal only (`homelab` network) |
+| qbittorrent    | `lscr.io/linuxserver/qbittorrent:5.2.3`       | `qbittorrent.urgas.eu` via Traefik, LAN `:6881` (peers) |
 
 Traefik handles TLS for everything under `urgas.eu` using a Let's Encrypt
 wildcard cert obtained via the Cloudflare DNS-01 challenge.
@@ -31,9 +32,10 @@ wildcard cert obtained via the Cloudflare DNS-01 challenge.
     │   ├── docker-compose.yml
     │   └── mosquitto.conf
     ├── plex/docker-compose.yml
-    └── postgresql/
-        ├── docker-compose.yml
-        └── override.conf
+    ├── postgresql/
+    │   ├── docker-compose.yml
+    │   └── override.conf
+    └── qbittorrent/docker-compose.yml
 ```
 
 Each `services/<name>/docker-compose.yml` is self-contained — you can paste it
@@ -50,7 +52,7 @@ One-time setup on the TrueNAS host:
 docker network create homelab
 
 # Persistent directories (bind mounts)
-mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,postgresql/data}
+mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,postgresql/data,qbittorrent/config}
 
 # acme.json must be mode 600 or Traefik refuses to use it
 install -m 600 /dev/null /mnt/ssd-storage/homelab/traefik/acme.json

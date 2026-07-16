@@ -1,0 +1,31 @@
+services:
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:5.2.3
+    container_name: qbittorrent
+    restart: unless-stopped
+    environment:
+      TZ: Europe/Tallinn
+      # Matches the owner of /mnt/hdd-storage/media so Plex can read downloads.
+      PUID: "568"
+      PGID: "568"
+      WEBUI_PORT: "8080"
+      TORRENTING_PORT: "6881"
+    ports:
+      # BitTorrent listen port for peer connectivity; the web UI is only
+      # reachable through Traefik.
+      - "6881:6881"
+      - "6881:6881/udp"
+    volumes:
+      - /mnt/ssd-storage/homelab/qbittorrent/config:/config
+      - /mnt/hdd-storage/media/downloads:/downloads
+    networks:
+      - homelab
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.qbittorrent.rule=Host(`qbittorrent.urgas.eu`)
+      - traefik.http.routers.qbittorrent.entrypoints=websecure
+      - traefik.http.services.qbittorrent.loadbalancer.server.port=8080
+
+networks:
+  homelab:
+    external: true

@@ -11,5 +11,6 @@ include:
   - services/home-assistant/docker-compose.yml
   - services/mosquitto/docker-compose.yml
   - services/plex/docker-compose.yml
+  - services/qbittorrent/docker-compose.yml
   - services/postgresql/docker-compose.yml
   - services/voice-assist/docker-compose.yml
