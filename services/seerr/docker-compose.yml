@@ -1,0 +1,25 @@
+services:
+  seerr:
+    image: ghcr.io/seerr-team/seerr:v3.3.0
+    container_name: seerr
+    restart: unless-stopped
+    # The image ships no init process of its own.
+    init: true
+    # No PUID/PGID support (not a linuxserver image); run directly as the
+    # media owner so the config dir migrated from overseerr stays writable.
+    user: "568:568"
+    environment:
+      TZ: Europe/Tallinn
+    volumes:
+      - /mnt/ssd-storage/homelab/seerr/config:/app/config
+    networks:
+      - homelab
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.seerr.rule=Host(`seerr.urgas.eu`)
+      - traefik.http.routers.seerr.entrypoints=websecure
+      - traefik.http.services.seerr.loadbalancer.server.port=5055
+
+networks:
+  homelab:
+    external: true
