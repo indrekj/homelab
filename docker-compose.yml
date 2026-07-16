@@ -12,5 +12,8 @@ include:
   - services/mosquitto/docker-compose.yml
   - services/plex/docker-compose.yml
   - services/qbittorrent/docker-compose.yml
+  - services/prowlarr/docker-compose.yml
+  - services/radarr/docker-compose.yml
+  - services/sonarr/docker-compose.yml
   - services/postgresql/docker-compose.yml
   - services/voice-assist/docker-compose.yml

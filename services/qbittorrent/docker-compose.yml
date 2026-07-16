@@ -17,7 +17,10 @@ services:
       - "6881:6881/udp"
     volumes:
       - /mnt/ssd-storage/homelab/qbittorrent/config:/config
-      - /mnt/hdd-storage/media/downloads:/downloads
+      # Whole media dataset (not just downloads/) so the path matches what
+      # Radarr/Sonarr mount and their imports can hardlink instead of copy.
+      # Save path in the web UI must be /data/downloads.
+      - /mnt/hdd-storage/media:/data
     networks:
       - homelab
     labels:

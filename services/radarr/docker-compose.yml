@@ -1,0 +1,27 @@
+services:
+  radarr:
+    image: lscr.io/linuxserver/radarr:6.3.0
+    container_name: radarr
+    restart: unless-stopped
+    environment:
+      TZ: Europe/Tallinn
+      # Matches the owner of /mnt/hdd-storage/media so imports stay readable
+      # by Plex and hardlinks into the library work.
+      PUID: "568"
+      PGID: "568"
+    volumes:
+      - /mnt/ssd-storage/homelab/radarr/config:/config
+      # Single mount covering downloads and the movie library so imports can
+      # hardlink instead of copy. Root folder: /data/movies
+      - /mnt/hdd-storage/media:/data
+    networks:
+      - homelab
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.radarr.rule=Host(`radarr.urgas.eu`)
+      - traefik.http.routers.radarr.entrypoints=websecure
+      - traefik.http.services.radarr.loadbalancer.server.port=7878
+
+networks:
+  homelab:
+    external: true

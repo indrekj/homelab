@@ -1,0 +1,22 @@
+services:
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:2.4.0
+    container_name: prowlarr
+    restart: unless-stopped
+    environment:
+      TZ: Europe/Tallinn
+      PUID: "568"
+      PGID: "568"
+    volumes:
+      - /mnt/ssd-storage/homelab/prowlarr/config:/config
+    networks:
+      - homelab
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.prowlarr.rule=Host(`prowlarr.urgas.eu`)
+      - traefik.http.routers.prowlarr.entrypoints=websecure
+      - traefik.http.services.prowlarr.loadbalancer.server.port=9696
+
+networks:
+  homelab:
+    external: true

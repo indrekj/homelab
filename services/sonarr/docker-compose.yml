@@ -1,0 +1,27 @@
+services:
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:4.0.19
+    container_name: sonarr
+    restart: unless-stopped
+    environment:
+      TZ: Europe/Tallinn
+      # Matches the owner of /mnt/hdd-storage/media so imports stay readable
+      # by Plex and hardlinks into the library work.
+      PUID: "568"
+      PGID: "568"
+    volumes:
+      - /mnt/ssd-storage/homelab/sonarr/config:/config
+      # Single mount covering downloads and the TV library so imports can
+      # hardlink instead of copy. Root folder: /data/series
+      - /mnt/hdd-storage/media:/data
+    networks:
+      - homelab
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.sonarr.rule=Host(`sonarr.urgas.eu`)
+      - traefik.http.routers.sonarr.entrypoints=websecure
+      - traefik.http.services.sonarr.loadbalancer.server.port=8989
+
+networks:
+  homelab:
+    external: true

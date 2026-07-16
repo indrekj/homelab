@@ -15,6 +15,9 @@ and domain. I publish it as a backup and so others can crib from it.
 | plex           | `plexinc/pms-docker`                          | `plex.urgas.eu` via Traefik, LAN `:32400` |
 | postgresql     | `bitnamilegacy/postgresql:15.3.0-debian-11-r24` | internal only (`homelab` network) |
 | qbittorrent    | `lscr.io/linuxserver/qbittorrent:5.2.3`       | `qbittorrent.urgas.eu` via Traefik, LAN `:6881` (peers) |
+| prowlarr       | `lscr.io/linuxserver/prowlarr:2.4.0`          | `prowlarr.urgas.eu` via Traefik |
+| radarr         | `lscr.io/linuxserver/radarr:6.3.0`            | `radarr.urgas.eu` via Traefik |
+| sonarr         | `lscr.io/linuxserver/sonarr:4.0.19`           | `sonarr.urgas.eu` via Traefik |
 
 Traefik handles TLS for everything under `urgas.eu` using a Let's Encrypt
 wildcard cert obtained via the Cloudflare DNS-01 challenge.
@@ -35,7 +38,10 @@ wildcard cert obtained via the Cloudflare DNS-01 challenge.
     ├── postgresql/
     │   ├── docker-compose.yml
     │   └── override.conf
-    └── qbittorrent/docker-compose.yml
+    ├── qbittorrent/docker-compose.yml
+    ├── prowlarr/docker-compose.yml
+    ├── radarr/docker-compose.yml
+    └── sonarr/docker-compose.yml
 ```
 
 Each `services/<name>/docker-compose.yml` is self-contained — you can paste it
@@ -52,7 +58,7 @@ One-time setup on the TrueNAS host:
 docker network create homelab
 
 # Persistent directories (bind mounts)
-mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,postgresql/data,qbittorrent/config}
+mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,postgresql/data,qbittorrent/config,prowlarr/config,radarr/config,sonarr/config}
 
 # acme.json must be mode 600 or Traefik refuses to use it
 install -m 600 /dev/null /mnt/ssd-storage/homelab/traefik/acme.json
