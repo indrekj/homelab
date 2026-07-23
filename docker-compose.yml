@@ -15,6 +15,7 @@ include:
   - services/prowlarr/docker-compose.yml
   - services/radarr/docker-compose.yml
   - services/sonarr/docker-compose.yml
+  - services/bazarr/docker-compose.yml
   - services/seerr/docker-compose.yml
   - services/postgresql/docker-compose.yml
   - services/voice-assist/docker-compose.yml

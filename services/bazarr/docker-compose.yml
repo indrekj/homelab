@@ -1,0 +1,27 @@
+services:
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:1.6.0
+    container_name: bazarr
+    restart: unless-stopped
+    environment:
+      TZ: Europe/Tallinn
+      # Matches the owner of /mnt/hdd-storage/media so downloaded subtitles
+      # land next to the video files and stay readable by Plex.
+      PUID: "568"
+      PGID: "568"
+    volumes:
+      - /mnt/ssd-storage/homelab/bazarr/config:/config
+      # Same mount and path as Radarr/Sonarr so no path mapping is needed
+      # when Bazarr reads their libraries.
+      - /mnt/hdd-storage/media:/data
+    networks:
+      - homelab
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.bazarr.rule=Host(`bazarr.urgas.eu`)
+      - traefik.http.routers.bazarr.entrypoints=websecure
+      - traefik.http.services.bazarr.loadbalancer.server.port=6767
+
+networks:
+  homelab:
+    external: true
