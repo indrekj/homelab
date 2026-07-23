@@ -1,0 +1,32 @@
+# Syncs TRaSH-Guides quality definitions, quality profiles and custom formats
+# into Radarr and Sonarr. No web UI — it runs a daily cron sync (CRON_SCHEDULE)
+# and exits between runs, so there are no Traefik labels.
+#
+# The declarative config (./config/recyclarr.yml) is version-controlled and
+# mounted read-only, like homepage's config. Runtime state (recyclarr.db, logs,
+# the cloned trash-guides repo) lives in the host /config dir so it persists
+# across rsync deploys instead of being clobbered by them.
+services:
+  recyclarr:
+    image: ghcr.io/recyclarr/recyclarr:8.7.0
+    container_name: recyclarr
+    restart: unless-stopped
+    # No PUID/PGID support (not a linuxserver image); run as the media owner so
+    # the host state dir stays writable.
+    user: "568:568"
+    environment:
+      TZ: Europe/Tallinn
+      # Sync once a day. Also runs once immediately on container start.
+      CRON_SCHEDULE: "@daily"
+      # Referenced from recyclarr.yml via `!env_var`. Set in the root .env.
+      RADARR_API_KEY: ${RADARR_API_KEY}
+      SONARR_API_KEY: ${SONARR_API_KEY}
+    volumes:
+      - /mnt/ssd-storage/homelab/recyclarr/config:/config
+      - ./config/recyclarr.yml:/config/recyclarr.yml:ro
+    networks:
+      - homelab
+
+networks:
+  homelab:
+    external: true

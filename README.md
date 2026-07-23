@@ -19,6 +19,7 @@ and domain. I publish it as a backup and so others can crib from it.
 | radarr         | `lscr.io/linuxserver/radarr:6.3.0`            | `radarr.urgas.eu` via Traefik |
 | sonarr         | `lscr.io/linuxserver/sonarr:4.0.19`           | `sonarr.urgas.eu` via Traefik |
 | bazarr         | `lscr.io/linuxserver/bazarr:1.6.0`            | `bazarr.urgas.eu` via Traefik |
+| recyclarr      | `ghcr.io/recyclarr/recyclarr:8.7.0`           | none — daily cron sync, no UI |
 | seerr          | `ghcr.io/seerr-team/seerr:v3.3.0`             | `seerr.urgas.eu` via Traefik |
 | uptime-kuma    | `louislam/uptime-kuma:2.4.0`                  | `uptime.urgas.eu` via Traefik |
 | homepage       | `ghcr.io/gethomepage/homepage:v1.13.2`        | `homepage.urgas.eu`, `home.urgas.eu` via Traefik |
@@ -48,6 +49,9 @@ wildcard cert obtained via the Cloudflare DNS-01 challenge.
     ├── radarr/docker-compose.yml
     ├── sonarr/docker-compose.yml
     ├── bazarr/docker-compose.yml
+    ├── recyclarr/
+    │   ├── docker-compose.yml
+    │   └── config/               # declarative TRaSH-Guides sync config (recyclarr.yml)
     ├── seerr/docker-compose.yml
     ├── uptime-kuma/docker-compose.yml
     └── homepage/
@@ -69,7 +73,7 @@ One-time setup on the TrueNAS host:
 docker network create homelab
 
 # Persistent directories (bind mounts)
-mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,postgresql/data,qbittorrent/config,prowlarr/config,radarr/config,sonarr/config,bazarr/config,seerr/config,uptime-kuma/data}
+mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,postgresql/data,qbittorrent/config,prowlarr/config,radarr/config,sonarr/config,bazarr/config,recyclarr/config,seerr/config,uptime-kuma/data}
 
 # acme.json must be mode 600 or Traefik refuses to use it
 install -m 600 /dev/null /mnt/ssd-storage/homelab/traefik/acme.json
