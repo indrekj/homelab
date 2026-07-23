@@ -21,6 +21,7 @@ and domain. I publish it as a backup and so others can crib from it.
 | bazarr         | `lscr.io/linuxserver/bazarr:1.6.0`            | `bazarr.urgas.eu` via Traefik |
 | seerr          | `ghcr.io/seerr-team/seerr:v3.3.0`             | `seerr.urgas.eu` via Traefik |
 | uptime-kuma    | `louislam/uptime-kuma:2.4.0`                  | `uptime.urgas.eu` via Traefik |
+| homepage       | `ghcr.io/gethomepage/homepage:v1.13.2`        | `homepage.urgas.eu`, `home.urgas.eu` via Traefik |
 
 Traefik handles TLS for everything under `urgas.eu` using a Let's Encrypt
 wildcard cert obtained via the Cloudflare DNS-01 challenge.
@@ -48,7 +49,10 @@ wildcard cert obtained via the Cloudflare DNS-01 challenge.
     ├── sonarr/docker-compose.yml
     ├── bazarr/docker-compose.yml
     ├── seerr/docker-compose.yml
-    └── uptime-kuma/docker-compose.yml
+    ├── uptime-kuma/docker-compose.yml
+    └── homepage/
+        ├── docker-compose.yml
+        └── config/               # declarative dashboard config (settings, services, widgets)
 ```
 
 Each `services/<name>/docker-compose.yml` is self-contained — you can paste it

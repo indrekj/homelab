@@ -1,0 +1,4 @@
+# Local docker socket mounted read-only in the compose file. Service tiles
+# reference this via `server: homelab` + `container: <name>` to show live status.
+homelab:
+  socket: /var/run/docker.sock

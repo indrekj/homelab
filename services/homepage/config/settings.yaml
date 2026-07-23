@@ -1,0 +1,20 @@
+title: Urgas Homelab
+
+# Order groups explicitly; anything not listed falls to the bottom.
+layout:
+  Media:
+    style: row
+    columns: 2
+  Automation:
+    style: row
+    columns: 3
+  Infrastructure:
+    style: row
+    columns: 3
+
+headerStyle: clean
+theme: dark
+color: slate
+
+# Live docker status dot, but keep tiles quiet until hovered.
+hideVersion: true

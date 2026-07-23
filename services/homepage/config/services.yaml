@@ -1,0 +1,86 @@
+# Tiles link out through Traefik; `server`/`container` pull live status from
+# the docker socket. Internal-only services (no web UI) are status-only.
+- Media:
+    - Plex:
+        icon: plex.png
+        href: https://plex.urgas.eu
+        description: Media server
+        server: homelab
+        container: plex
+    - Seerr:
+        icon: overseerr.png
+        href: https://seerr.urgas.eu
+        description: Media requests
+        server: homelab
+        container: seerr
+
+- Automation:
+    - Prowlarr:
+        icon: prowlarr.png
+        href: https://prowlarr.urgas.eu
+        description: Indexer manager
+        server: homelab
+        container: prowlarr
+    - Radarr:
+        icon: radarr.png
+        href: https://radarr.urgas.eu
+        description: Movies
+        server: homelab
+        container: radarr
+    - Sonarr:
+        icon: sonarr.png
+        href: https://sonarr.urgas.eu
+        description: TV series
+        server: homelab
+        container: sonarr
+    - Bazarr:
+        icon: bazarr.png
+        href: https://bazarr.urgas.eu
+        description: Subtitles
+        server: homelab
+        container: bazarr
+    - qBittorrent:
+        icon: qbittorrent.png
+        href: https://qbittorrent.urgas.eu
+        description: Downloads
+        server: homelab
+        container: qbittorrent
+
+- Infrastructure:
+    - Home Assistant:
+        icon: home-assistant.png
+        href: https://homeassistant.urgas.eu
+        description: Home automation
+        server: homelab
+        container: home-assistant
+    - Uptime Kuma:
+        icon: uptime-kuma.png
+        href: https://uptime.urgas.eu
+        description: Service monitoring
+        server: homelab
+        container: uptime-kuma
+    - Traefik:
+        icon: traefik.png
+        description: Reverse proxy / TLS
+        server: homelab
+        container: traefik
+    - PostgreSQL:
+        icon: postgres.png
+        description: Database
+        server: homelab
+        container: postgresql
+    - Mosquitto:
+        icon: mosquitto.png
+        description: MQTT broker
+        server: homelab
+        container: mosquitto
+    - Whisper:
+        icon: mdi-microphone
+        description: Voice pipeline (STT)
+        server: homelab
+        container: whisper
+    - Piper:
+        icon: mdi-account-voice
+        description: Voice pipeline (TTS)
+        server: homelab
+        container: piper

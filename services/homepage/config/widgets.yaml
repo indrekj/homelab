@@ -1,0 +1,16 @@
+# Header bar. Resource figures reflect the homepage container's cgroup view of
+# the host (whole-host CPU/mem), not a per-container slice.
+- resources:
+    cpu: true
+    memory: true
+
+- datetime:
+    text_size: xl
+    format:
+      dateStyle: short
+      timeStyle: short
+      hourCycle: h23
+
+- search:
+    provider: duckduckgo
+    target: _blank

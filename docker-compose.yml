@@ -20,3 +20,4 @@ include:
   - services/postgresql/docker-compose.yml
   - services/voice-assist/docker-compose.yml
   - services/uptime-kuma/docker-compose.yml
+  - services/homepage/docker-compose.yml
