@@ -1,0 +1,28 @@
+# Uptime monitoring for the rest of the stack. Probe other services by their
+# container name on the homelab network (e.g. http://radarr:7878) — no need to
+# go out through Traefik and back in.
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:2.4.0
+    container_name: uptime-kuma
+    restart: unless-stopped
+    environment:
+      TZ: Europe/Tallinn
+    volumes:
+      - /mnt/ssd-storage/homelab/uptime-kuma/data:/app/data
+    networks:
+      - homelab
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.uptime-kuma.rule=Host(`uptime.urgas.eu`)
+      - traefik.http.routers.uptime-kuma.entrypoints=websecure
+      - traefik.http.services.uptime-kuma.loadbalancer.server.port=3001
+
+networks:
+  homelab:
+    external: true
