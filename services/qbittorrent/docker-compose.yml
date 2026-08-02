@@ -10,6 +10,25 @@ services:
       PGID: "568"
       WEBUI_PORT: "8080"
       TORRENTING_PORT: "6881"
+    # qBittorrent feeds data from thousands of unauthenticated internet peers
+    # into libtorrent's parsers, which makes it the widest attack surface in
+    # the stack — 6881 is forwarded on the router, so those connections are
+    # inbound. Same treatment as Plex: drop every capability, then add back
+    # only what the s6 init needs. CHOWN/DAC_OVERRIDE/FOWNER for the /config
+    # chown, SETUID/SETGID to drop to PUID/PGID, KILL so the root supervisor
+    # can signal its non-root children. qbittorrent-nox itself needs none of
+    # them. no-new-privileges blocks privilege escalation via setuid binaries.
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETUID
+      - SETGID
+      - KILL
     ports:
       # BitTorrent listen port for peer connectivity; the web UI is only
       # reachable through Traefik.

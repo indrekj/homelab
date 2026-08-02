@@ -99,6 +99,26 @@ cp .env.example .env
 $EDITOR .env
 ```
 
+### qBittorrent WebUI host whitelist
+
+qBittorrent's own settings live in its config directory, not in compose, so
+they are not captured by this repo and a recreated config silently reverts to
+the insecure default. One matters for security: **Web UI → "Server domains"**
+must not be left at `*`. That wildcard disables host-header validation, which
+is the check that stops a hostile web page from DNS-rebinding a browser on the
+LAN onto the WebUI. Set it to the hostnames that actually reach it:
+
+```
+qbittorrent.urgas.eu;qbittorrent
+```
+
+Both entries are required — the first is what Traefik forwards, the second is
+what Radarr and Sonarr use to reach the API directly over the `homelab`
+network. Editing `qBittorrent.conf` by hand instead of via the UI needs the
+value **quoted**, or Qt reads the `;` as an INI comment and drops everything
+after it, locking out the *arrs with a 401. Stop the container before editing;
+qBittorrent rewrites the file on exit.
+
 ## Deployment
 
 Sync files to the target server:
