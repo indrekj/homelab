@@ -1,7 +1,11 @@
 # Dashboard/landing page for the whole stack. Config is declarative and lives
 # in ./config (version-controlled, mounted read-only like mosquitto.conf).
-# The read-only docker socket lets service tiles show live container status —
-# same access Traefik already has.
+# The docker socket lets service tiles show live container status. NOTE: `:ro`
+# only protects the socket file, not the API — this container can still create
+# privileged containers, i.e. it holds root on the host. Traefik used to mount
+# it too and no longer does (see services/traefik/dynamic/routes.yml); Homepage
+# is now the last container with that access. Drop the mount and lose the
+# status tiles, or front it with a docker-socket-proxy, when you get to it.
 services:
   homepage:
     image: ghcr.io/gethomepage/homepage:v1.13.2
@@ -21,11 +25,6 @@ services:
         limits:
           cpus: "1.0"
           memory: 512M
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.homepage.rule=Host(`homepage.urgas.eu`) || Host(`home.urgas.eu`)
-      - traefik.http.routers.homepage.entrypoints=websecure
-      - traefik.http.services.homepage.loadbalancer.server.port=3000
 
 networks:
   homelab:

@@ -16,11 +16,6 @@ services:
       - /mnt/hdd-storage/media:/data
     networks:
       - homelab
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.radarr.rule=Host(`radarr.urgas.eu`)
-      - traefik.http.routers.radarr.entrypoints=websecure
-      - traefik.http.services.radarr.loadbalancer.server.port=7878
 
 networks:
   homelab:

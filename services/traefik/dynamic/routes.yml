@@ -1,0 +1,126 @@
+# Traefik dynamic configuration — the routing table for the whole stack.
+#
+# This replaces the per-container `traefik.*` labels that the Docker provider
+# used to read. Traefik no longer talks to the Docker API at all, so it no
+# longer mounts /var/run/docker.sock.
+#
+# Why that matters: the `:ro` flag on a socket bind mount only protects the
+# socket *file*. It does not make the Docker API read-only — POST /containers
+# /create still works, so anything that compromised Traefik could start a
+# privileged container bind-mounting / and own the host. Traefik terminates
+# TLS for every service and is the most reachable container in the stack, so
+# it was the worst place to keep a host-root credential.
+#
+# The trade-off: no auto-discovery. Adding a service now means adding a router
+# and a service block here as well as its compose file. Ports are duplicated
+# between the two, so they have to be kept in step by hand.
+#
+# Backends are addressed by container name — Docker's embedded DNS on the
+# `homelab` network resolves them, exactly as it did under the Docker provider.
+# Traefik watches this directory, so changes apply without a restart.
+#
+# TLS is configured on the websecure entrypoint (see docker-compose.yml), so
+# routers inherit the wildcard cert and need no `tls` block of their own.
+
+http:
+  routers:
+    home-assistant:
+      rule: "Host(`homeassistant.urgas.eu`)"
+      entryPoints: [websecure]
+      service: home-assistant
+
+    plex:
+      rule: "Host(`plex.urgas.eu`)"
+      entryPoints: [websecure]
+      service: plex
+
+    qbittorrent:
+      rule: "Host(`qbittorrent.urgas.eu`)"
+      entryPoints: [websecure]
+      service: qbittorrent
+
+    prowlarr:
+      rule: "Host(`prowlarr.urgas.eu`)"
+      entryPoints: [websecure]
+      service: prowlarr
+
+    radarr:
+      rule: "Host(`radarr.urgas.eu`)"
+      entryPoints: [websecure]
+      service: radarr
+
+    sonarr:
+      rule: "Host(`sonarr.urgas.eu`)"
+      entryPoints: [websecure]
+      service: sonarr
+
+    bazarr:
+      rule: "Host(`bazarr.urgas.eu`)"
+      entryPoints: [websecure]
+      service: bazarr
+
+    seerr:
+      rule: "Host(`seerr.urgas.eu`)"
+      entryPoints: [websecure]
+      service: seerr
+
+    uptime-kuma:
+      rule: "Host(`uptime.urgas.eu`)"
+      entryPoints: [websecure]
+      service: uptime-kuma
+
+    homepage:
+      rule: "Host(`homepage.urgas.eu`) || Host(`home.urgas.eu`)"
+      entryPoints: [websecure]
+      service: homepage
+
+  services:
+    home-assistant:
+      loadBalancer:
+        servers:
+          - url: "http://home-assistant:8123"
+
+    plex:
+      loadBalancer:
+        servers:
+          - url: "http://plex:32400"
+
+    qbittorrent:
+      loadBalancer:
+        servers:
+          - url: "http://qbittorrent:8080"
+
+    prowlarr:
+      loadBalancer:
+        servers:
+          - url: "http://prowlarr:9696"
+
+    radarr:
+      loadBalancer:
+        servers:
+          - url: "http://radarr:7878"
+
+    sonarr:
+      loadBalancer:
+        servers:
+          - url: "http://sonarr:8989"
+
+    bazarr:
+      loadBalancer:
+        servers:
+          - url: "http://bazarr:6767"
+
+    seerr:
+      loadBalancer:
+        servers:
+          - url: "http://seerr:5055"
+
+    uptime-kuma:
+      loadBalancer:
+        servers:
+          - url: "http://uptime-kuma:3001"
+
+    homepage:
+      loadBalancer:
+        servers:
+          - url: "http://homepage:3000"

@@ -11,11 +11,6 @@ services:
       - /mnt/ssd-storage/homelab/prowlarr/config:/config
     networks:
       - homelab
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.prowlarr.rule=Host(`prowlarr.urgas.eu`)
-      - traefik.http.routers.prowlarr.entrypoints=websecure
-      - traefik.http.services.prowlarr.loadbalancer.server.port=9696
 
 networks:
   homelab:

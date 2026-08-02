@@ -7,10 +7,11 @@ services:
       CF_DNS_API_TOKEN: ${CLOUDFLARE_API_TOKEN}
     command:
       - --api.dashboard=false
-      - --providers.docker=true
-      - --providers.docker.exposedbydefault=false
-      - --providers.docker.network=homelab
-      - --providers.docker.endpoint=unix:///var/run/docker.sock
+      # Routing comes from ./dynamic/routes.yml, not from container labels, so
+      # Traefik never touches the Docker API and needs no socket mount. See the
+      # header of that file for why. `watch` reloads it without a restart.
+      - --providers.file.directory=/etc/traefik/dynamic
+      - --providers.file.watch=true
       - --entrypoints.web.address=:80
       - --entrypoints.web.http.redirections.entrypoint.to=websecure
       - --entrypoints.web.http.redirections.entrypoint.scheme=https
@@ -28,7 +29,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./dynamic:/etc/traefik/dynamic:ro
       - /mnt/ssd-storage/homelab/traefik/acme.json:/letsencrypt/acme.json
     networks:
       - homelab

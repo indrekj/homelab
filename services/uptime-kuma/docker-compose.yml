@@ -17,11 +17,6 @@ services:
         limits:
           cpus: "1.0"
           memory: 512M
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.uptime-kuma.rule=Host(`uptime.urgas.eu`)
-      - traefik.http.routers.uptime-kuma.entrypoints=websecure
-      - traefik.http.services.uptime-kuma.loadbalancer.server.port=3001
 
 networks:
   homelab:

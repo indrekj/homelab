@@ -14,11 +14,6 @@ services:
       - /mnt/ssd-storage/homelab/seerr/config:/app/config
     networks:
       - homelab
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.seerr.rule=Host(`seerr.urgas.eu`)
-      - traefik.http.routers.seerr.entrypoints=websecure
-      - traefik.http.services.seerr.loadbalancer.server.port=5055
 
 networks:
   homelab:

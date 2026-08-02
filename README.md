@@ -27,6 +27,13 @@ and domain. I publish it as a backup and so others can crib from it.
 Traefik handles TLS for everything under `urgas.eu` using a Let's Encrypt
 wildcard cert obtained via the Cloudflare DNS-01 challenge.
 
+Routing is declared centrally in `services/traefik/dynamic/routes.yml` (the
+file provider) rather than through per-container `traefik.*` labels. This keeps
+the Docker socket out of the internet-facing proxy — `:ro` on a socket mount
+does not make the Docker API read-only, so a compromised Traefik could
+otherwise start a privileged container and take the host. The cost is that
+adding a service means editing that file too; there is no auto-discovery.
+
 ## Layout
 
 ```
@@ -34,7 +41,9 @@ wildcard cert obtained via the Cloudflare DNS-01 challenge.
 ├── docker-compose.yml           # aggregates all services via `include:`
 ├── .env                         # secrets (gitignored) — see .env.example
 └── services/
-    ├── traefik/docker-compose.yml
+    ├── traefik/
+    │   ├── docker-compose.yml
+    │   └── dynamic/              # routing table for every service (file provider)
     ├── home-assistant/docker-compose.yml
     ├── mosquitto/
     │   ├── docker-compose.yml
@@ -62,7 +71,9 @@ wildcard cert obtained via the Cloudflare DNS-01 challenge.
 Each `services/<name>/docker-compose.yml` is self-contained — you can paste it
 straight into TrueNAS's "Install Custom App" UI, or run `docker compose up`
 from that directory. The root `docker-compose.yml` just `include:`s all of them
-for convenience.
+for convenience. The one exception is HTTP routing: a service pasted on its own
+comes up reachable on the `homelab` network but unrouted until its router and
+service blocks are added to `services/traefik/dynamic/routes.yml`.
 
 ## Bootstrap
 

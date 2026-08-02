@@ -16,11 +16,6 @@ services:
       - /mnt/hdd-storage/media:/data
     networks:
       - homelab
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.sonarr.rule=Host(`sonarr.urgas.eu`)
-      - traefik.http.routers.sonarr.entrypoints=websecure
-      - traefik.http.services.sonarr.loadbalancer.server.port=8989
 
 networks:
   homelab:

@@ -16,11 +16,6 @@ services:
         limits:
           cpus: "2.0"
           memory: 2G
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.home-assistant.rule=Host(`homeassistant.urgas.eu`)
-      - traefik.http.routers.home-assistant.entrypoints=websecure
-      - traefik.http.services.home-assistant.loadbalancer.server.port=8123
 
 networks:
   homelab:

@@ -16,11 +16,6 @@ services:
       - /mnt/hdd-storage/media:/data
     networks:
       - homelab
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.bazarr.rule=Host(`bazarr.urgas.eu`)
-      - traefik.http.routers.bazarr.entrypoints=websecure
-      - traefik.http.services.bazarr.loadbalancer.server.port=6767
 
 networks:
   homelab:
