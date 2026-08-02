@@ -16,5 +16,4 @@ headerStyle: clean
 theme: dark
 color: slate
 
-# Live docker status dot, but keep tiles quiet until hovered.
 hideVersion: true

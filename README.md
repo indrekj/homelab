@@ -28,11 +28,16 @@ Traefik handles TLS for everything under `urgas.eu` using a Let's Encrypt
 wildcard cert obtained via the Cloudflare DNS-01 challenge.
 
 Routing is declared centrally in `services/traefik/dynamic/routes.yml` (the
-file provider) rather than through per-container `traefik.*` labels. This keeps
-the Docker socket out of the internet-facing proxy — `:ro` on a socket mount
-does not make the Docker API read-only, so a compromised Traefik could
-otherwise start a privileged container and take the host. The cost is that
-adding a service means editing that file too; there is no auto-discovery.
+file provider) rather than through per-container `traefik.*` labels. The cost
+is that adding a service means editing that file too; there is no
+auto-discovery.
+
+**No container in this stack mounts the Docker socket.** `:ro` on a socket
+mount protects only the file, not the API, so any container holding it can
+create privileged containers and take root on the host. Traefik gave it up by
+moving to the file provider; Homepage gave it up by dropping its live
+container-status tiles. Keep it that way — if something needs the Docker API,
+put a `docker-socket-proxy` in front of it rather than mounting the socket.
 
 ## Layout
 
