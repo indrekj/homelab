@@ -11,6 +11,30 @@ services:
       # request arriving via plex.urgas.eu would inherit the bridge IP and skip
       # auth entirely. Keep this to the physical LAN only.
       ALLOWED_NETWORKS: "192.168.1.0/24"
+      # Run Plex as `apps` (568), the unprivileged nologin account seerr and
+      # recyclarr already use. Without these the image defaults to uid 1000,
+      # which on this host is a real login account with a shell rather than a
+      # service account. The s6 init still starts as root to chown /config and
+      # /transcode and then drops to this uid; PMS itself has never run as root.
+      PLEX_UID: 568
+      PLEX_GID: 568
+    # Plex needs no privileged operations of its own. The init does, so the
+    # few capabilities it uses are added back: CHOWN/DAC_OVERRIDE/FOWNER for
+    # the /config and /transcode chown, SETUID/SETGID to drop to the plex
+    # user, KILL so the root s6 supervisor can signal its non-root children.
+    # Everything else — NET_RAW, SYS_PTRACE, MKNOD and friends — is dropped.
+    # No devices are mapped, so there is no hardware transcoding to break.
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETUID
+      - SETGID
+      - KILL
     ports:
       # Direct access port so LAN clients can reach Plex without going
       # through Traefik.
