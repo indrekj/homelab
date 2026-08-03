@@ -45,6 +45,7 @@ put a `docker-socket-proxy` in front of it rather than mounting the socket.
 .
 ├── docker-compose.yml           # aggregates all services via `include:`
 ├── .env                         # secrets (gitignored) — see .env.example
+├── .github/dependabot.yml       # weekly PRs bumping pinned image tags
 └── services/
     ├── traefik/
     │   ├── docker-compose.yml
@@ -140,6 +141,19 @@ docker compose up -d                          # start everything
 docker compose down                           # stop everything
 docker compose pull && docker compose up -d   # update images
 ```
+
+## Image updates
+
+Every image here is pinned, and `.github/dependabot.yml` opens one grouped PR a
+week against `master` covering all of `services/*/docker-compose.yml`. Grouped
+because fourteen separate PRs for a homelab is noise; `directories: ["/services/*"]`
+picks up new services automatically, so adding one needs no config change.
+
+Two things it deliberately does not do. It carries no vulnerability data for
+container images — the `docker-compose` ecosystem does version updates only, so
+a PR means "a newer tag exists", never "the tag you are on has a CVE". And
+merging deploys nothing: the stack is deployed by the manual rsync above, so a
+merged PR is only a change of intent until that runs.
 
 ## Secrets
 

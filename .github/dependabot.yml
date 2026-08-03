@@ -1,0 +1,26 @@
+version: 2
+
+# Weekly PRs bumping the pinned image tags in services/*/docker-compose.yml.
+#
+# These are version updates only — Dependabot does not do security updates for
+# the docker-compose ecosystem, so a PR here means "a newer tag exists", never
+# "the tag you are on has a CVE". Merging a PR also does not deploy anything;
+# the stack is deployed by hand (see the Deployment section of the README).
+#
+# The root docker-compose.yml is only `include:` statements — no images in it,
+# so it needs no entry here.
+updates:
+  - package-ecosystem: docker-compose
+    directories:
+      - "/services/*"
+    schedule:
+      interval: weekly
+      day: saturday
+    # One PR for the whole stack rather than one per service.
+    groups:
+      homelab:
+        patterns:
+          - "*"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "Bump"
