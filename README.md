@@ -9,9 +9,9 @@ and domain. I publish it as a backup and so others can crib from it.
 
 | Service        | Image                                          | Exposed on          |
 |----------------|-----------------------------------------------|---------------------|
-| traefik        | `traefik:v3.3`                                | `:80`, `:443`       |
+| traefik        | `traefik:v3.3.7`                              | `:80`, `:443`       |
 | home-assistant | `homeassistant/home-assistant:2026.7.1`       | `homeassistant.urgas.eu` via Traefik |
-| mosquitto      | `eclipse-mosquitto:2`                         | LAN `:1883`         |
+| mosquitto      | `eclipse-mosquitto:2.1.2-alpine`              | LAN `:1883`         |
 | plex           | `plexinc/pms-docker`                          | `plex.urgas.eu` via Traefik, LAN `:32400` |
 | postgresql     | `bitnamilegacy/postgresql:15.3.0-debian-11-r24` | internal only (`homelab` network) |
 | qbittorrent    | `lscr.io/linuxserver/qbittorrent:5.2.3`       | `qbittorrent.urgas.eu` via Traefik, LAN `:6881` (peers) |
