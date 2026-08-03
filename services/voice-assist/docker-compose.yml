@@ -7,6 +7,12 @@ services:
     container_name: whisper
     restart: unless-stopped
     command: --model small.en --compute-type int8 --language en
+    # Plain Python process on an unprivileged port, no init that chowns or
+    # changes user, so it needs no capabilities.
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     volumes:
       - /mnt/ssd-storage/homelab/voice-assist/whisper:/data
     networks:
@@ -22,6 +28,11 @@ services:
     container_name: piper
     restart: unless-stopped
     command: --voice en_US-lessac-medium
+    # Same as whisper above — no capabilities required.
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     volumes:
       - /mnt/ssd-storage/homelab/voice-assist/piper:/data
     networks:

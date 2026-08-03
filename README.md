@@ -39,6 +39,27 @@ moving to the file provider; Homepage gave it up by dropping its live
 container-status tiles. Keep it that way — if something needs the Docker API,
 put a `docker-socket-proxy` in front of it rather than mounting the socket.
 
+**Every container runs with `cap_drop: ALL` and `no-new-privileges:true`**, and
+adds back only what it demonstrably needs. New services should follow suit.
+There are four shapes:
+
+| Shape | Capabilities added | Services |
+|-------|--------------------|----------|
+| s6-based images (linuxserver, Plex, Home Assistant) | `CHOWN`, `DAC_OVERRIDE`, `FOWNER`, `SETUID`, `SETGID`, `KILL` | plex, qbittorrent, radarr, sonarr, prowlarr, bazarr, home-assistant |
+| Starts as root, drops itself via setuid | same, minus `KILL` | mosquitto |
+| Binds a privileged port | `NET_BIND_SERVICE` | traefik |
+| Already starts as a non-root uid, or needs nothing | none | postgresql, seerr, recyclarr, homepage, uptime-kuma, whisper, piper |
+
+The s6 capabilities are for the init, not the application — s6 chowns `/config`
+and drops to `PUID`/`PGID`, then the app itself runs with none of them. Traefik
+needs `NET_BIND_SERVICE` even as root, because the privileged-port check is
+capability-based rather than uid-based; without it, `:80` fails to bind.
+
+`NET_RAW` is deliberately absent everywhere. It is what ICMP `ping` monitors and
+DHCP-based discovery want, and it also permits ARP spoofing against every other
+container on the shared `homelab` bridge. Nothing here currently needs it — add
+it back per-service, with a comment, if that changes.
+
 ## Layout
 
 ```

@@ -16,6 +16,12 @@ services:
       TZ: Europe/Tallinn
       # Homepage refuses requests whose Host header isn't allow-listed.
       HOMEPAGE_ALLOWED_HOSTS: homepage.urgas.eu,home.urgas.eu
+    # Plain Node process on an unprivileged port, with no init that chowns or
+    # changes user, so it needs no capabilities at all.
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     volumes:
       - ./config:/app/config
     networks:

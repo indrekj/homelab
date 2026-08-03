@@ -21,6 +21,12 @@ services:
       # Referenced from recyclarr.yml via `!env_var`. Set in the root .env.
       RADARR_API_KEY: ${RADARR_API_KEY}
       SONARR_API_KEY: ${SONARR_API_KEY}
+    # Already starts as 568 rather than dropping from root, and it only makes
+    # outbound HTTP calls, so nothing needs adding back.
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     volumes:
       - /mnt/ssd-storage/homelab/recyclarr/config:/config
       - ./config/recyclarr.yml:/config/recyclarr.yml:ro

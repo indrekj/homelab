@@ -10,6 +10,12 @@ services:
     user: "568:568"
     environment:
       TZ: Europe/Tallinn
+    # Already starts as 568 rather than dropping from root, and 5055 is
+    # unprivileged, so nothing needs adding back.
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     volumes:
       - /mnt/ssd-storage/homelab/seerr/config:/app/config
     networks:

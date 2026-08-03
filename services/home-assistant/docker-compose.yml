@@ -3,6 +3,26 @@ services:
     image: homeassistant/home-assistant:2026.7.1
     container_name: home-assistant
     restart: unless-stopped
+    # The official HA image is s6-based (its entrypoint is /init), so it gets
+    # the same cap set as the linuxserver containers even though HA itself
+    # stays root rather than dropping to a service user — s6 chowns its runtime
+    # dirs on the way up. NET_RAW is deliberately NOT added back: the only
+    # thing here that wants it is DHCP-based discovery, which cannot see LAN
+    # broadcast traffic from a bridge network anyway (the logs show no DHCP
+    # activity and no dhcp config entry). Leaving it out matters because
+    # NET_RAW on the shared homelab bridge permits ARP spoofing against every
+    # other container. Re-add it only if a raw-socket integration is added.
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETUID
+      - SETGID
+      - KILL
     environment:
       TZ: Europe/Tallinn
     volumes:

@@ -3,6 +3,22 @@ services:
     image: eclipse-mosquitto:2.1.2-alpine
     container_name: mosquitto
     restart: unless-stopped
+    # The entrypoint starts as root to chown /mosquitto/data, and the broker
+    # then drops itself to the `mosquitto` user (1883) via setuid rather than
+    # being started as that user — so CHOWN/DAC_OVERRIDE/FOWNER for the chown
+    # and SETUID/SETGID for the drop. No KILL: it is a single process with no
+    # supervisor signalling across uids. 1883 is unprivileged, so no
+    # NET_BIND_SERVICE either.
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETUID
+      - SETGID
     ports:
       - "1883:1883"
     volumes:

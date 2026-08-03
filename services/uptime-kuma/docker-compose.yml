@@ -8,6 +8,13 @@ services:
     restart: unless-stopped
     environment:
       TZ: Europe/Tallinn
+    # No capabilities needed. NET_RAW would only be required for ICMP `ping`
+    # monitors — every monitor here is an http or port check, both of which use
+    # ordinary sockets. Add NET_RAW back if a ping monitor is ever created.
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     volumes:
       - /mnt/ssd-storage/homelab/uptime-kuma/data:/app/data
     networks:

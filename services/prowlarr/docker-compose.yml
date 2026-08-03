@@ -7,6 +7,21 @@ services:
       TZ: Europe/Tallinn
       PUID: "568"
       PGID: "568"
+    # The s6 init needs these to chown /config and drop to PUID/PGID; Prowlarr
+    # itself needs none of them. Everything else — NET_RAW, MKNOD, SYS_PTRACE
+    # and friends — is dropped. See services/qbittorrent/docker-compose.yml for
+    # the full rationale.
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETUID
+      - SETGID
+      - KILL
     volumes:
       - /mnt/ssd-storage/homelab/prowlarr/config:/config
     networks:
