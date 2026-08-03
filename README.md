@@ -13,7 +13,7 @@ and domain. I publish it as a backup and so others can crib from it.
 | home-assistant | `homeassistant/home-assistant:2026.7.1`       | `homeassistant.urgas.eu` via Traefik |
 | mosquitto      | `eclipse-mosquitto:2.1.2-alpine`              | LAN `:1883`         |
 | plex           | `plexinc/pms-docker`                          | `plex.urgas.eu` via Traefik, LAN `:32400` |
-| postgresql     | `bitnamilegacy/postgresql:15.3.0-debian-11-r24` | internal only (`homelab` network) |
+| postgresql     | `postgres:15.18-trixie`                       | internal only (`homelab` network) |
 | qbittorrent    | `lscr.io/linuxserver/qbittorrent:5.2.3`       | `qbittorrent.urgas.eu` via Traefik, LAN `:6881` (peers) |
 | prowlarr       | `lscr.io/linuxserver/prowlarr:2.4.0`          | `prowlarr.urgas.eu` via Traefik |
 | radarr         | `lscr.io/linuxserver/radarr:6.3.0`            | `radarr.urgas.eu` via Traefik |
@@ -55,9 +55,7 @@ put a `docker-socket-proxy` in front of it rather than mounting the socket.
     │   ├── docker-compose.yml
     │   └── mosquitto.conf
     ├── plex/docker-compose.yml
-    ├── postgresql/
-    │   ├── docker-compose.yml
-    │   └── override.conf
+    ├── postgresql/docker-compose.yml
     ├── qbittorrent/docker-compose.yml
     ├── voice-assist/docker-compose.yml
     ├── prowlarr/docker-compose.yml
@@ -90,7 +88,10 @@ One-time setup on the TrueNAS host:
 docker network create homelab
 
 # Persistent directories (bind mounts)
-mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,postgresql/data,qbittorrent/config,prowlarr/config,radarr/config,sonarr/config,bazarr/config,recyclarr/config,seerr/config,uptime-kuma/data}
+mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,postgresql/pgdata,qbittorrent/config,prowlarr/config,radarr/config,sonarr/config,bazarr/config,recyclarr/config,seerr/config,uptime-kuma/data}
+
+# Postgres runs as `apps` (568) and its entrypoint will not chown for itself
+chown 568:568 /mnt/ssd-storage/homelab/postgresql/pgdata
 
 # acme.json must be mode 600 or Traefik refuses to use it
 install -m 600 /dev/null /mnt/ssd-storage/homelab/traefik/acme.json

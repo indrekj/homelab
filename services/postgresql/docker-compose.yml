@@ -1,13 +1,49 @@
+# PostgreSQL — backing store for Home Assistant's `recorder` (history and
+# long-term statistics). Nothing else in the stack connects to it.
+#
+# The 15 line is supported until November 2027. Moving to a newer major is a
+# dump and restore, not a tag bump, so do it as its own change.
 services:
   postgresql:
-    image: bitnamilegacy/postgresql:15.3.0-debian-11-r24
+    image: postgres:15.18-trixie
     container_name: postgresql
     restart: unless-stopped
+    # Run as `apps` (568), the unprivileged nologin account seerr and recyclarr
+    # already use, rather than a uid that maps to a real login account on this
+    # host — the same reasoning that put Plex on 568. The entrypoint skips its
+    # own chown/gosu step when it is already running non-root, so PGDATA must
+    # be owned by 568:568 on the host before this starts.
+    user: "568:568"
     environment:
-      POSTGRESQL_PASSWORD: ${POSTGRESQL_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /var/lib/postgresql/data
+      # Read by initdb only, on a fresh data directory — changing this later
+      # has no effect on an existing cluster.
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+    # Tuning is passed as flags because the image has no conf.d include, and
+    # `include_dir` is a postgresql.conf preprocessor directive rather than a
+    # GUC, so it cannot be set with -c.
+    #   Max memory = shared_buffers + (temp_buffers + work_mem) * max_connections
+    command:
+      - postgres
+      - -c
+      - shared_buffers=16MB
+      - -c
+      - temp_buffers=4MB
+      - -c
+      - work_mem=2MB
+      - -c
+      - maintenance_work_mem=16MB
+      - -c
+      - max_connections=100
+    # Postgres needs no capabilities of its own: it starts as 568 rather than
+    # dropping from root, and 5432 is unprivileged. Nothing is added back.
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     volumes:
-      - /mnt/ssd-storage/homelab/postgresql/data:/bitnami/postgresql
-      - ./override.conf:/bitnami/postgresql/conf/conf.d/override.conf:ro
+      - /mnt/ssd-storage/homelab/postgresql/pgdata:/var/lib/postgresql/data
     # No ports published — reachable only from other services on the
     # homelab network via hostname `postgresql` on port 5432.
     networks:
