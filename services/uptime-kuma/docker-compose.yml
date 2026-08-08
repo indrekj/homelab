@@ -3,7 +3,7 @@
 # go out through Traefik and back in.
 services:
   uptime-kuma:
-    image: louislam/uptime-kuma:2.4.0
+    image: louislam/uptime-kuma:2.5.0
     container_name: uptime-kuma
     restart: unless-stopped
     environment:

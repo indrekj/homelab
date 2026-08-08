@@ -5,7 +5,7 @@
 # dump and restore, not a tag bump, so do it as its own change.
 services:
   postgresql:
-    image: postgres:15.18-trixie
+    image: postgres:18.4-trixie
     container_name: postgresql
     restart: unless-stopped
     # Run as `apps` (568), the unprivileged nologin account seerr and recyclarr

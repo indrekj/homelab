@@ -1,6 +1,6 @@
 services:
   home-assistant:
-    image: homeassistant/home-assistant:2026.7.4
+    image: homeassistant/home-assistant:2026.8.0
     container_name: home-assistant
     restart: unless-stopped
     # The official HA image is s6-based (its entrypoint is /init), so it gets
