@@ -21,6 +21,16 @@ updates:
       homelab:
         patterns:
           - "*"
+    # A new Postgres major is a pg_dump/pg_restore of Home Assistant's recorder,
+    # not a tag bump — see the header of services/postgresql/docker-compose.yml.
+    # Dependabot proposed 15 -> 18 in the first grouped PR, which would have
+    # crash-looped the container on an incompatible data directory. Minor and
+    # patch bumps within the current major still come through as normal; drop
+    # this entry when the major upgrade is done by hand.
+    ignore:
+      - dependency-name: "postgres"
+        update-types:
+          - "version-update:semver-major"
     open-pull-requests-limit: 3
     commit-message:
       prefix: "Bump"

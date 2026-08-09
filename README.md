@@ -182,6 +182,11 @@ a PR means "a newer tag exists", never "the tag you are on has a CVE". And
 merging deploys nothing: the stack is deployed by the manual rsync above, so a
 merged PR is only a change of intent until that runs.
 
+Postgres majors are the one exception, ignored in `dependabot.yml`. Moving the
+recorder to a new major is a dump and restore rather than a tag change, and a
+grouped PR that quietly carries one would crash-loop the container against an
+incompatible data directory. Minor and patch bumps still come through.
+
 ## Secrets
 
 Secrets live in a gitignored `.env` file at the repo root. See `.env.example`
