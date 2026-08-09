@@ -10,7 +10,7 @@ and domain. I publish it as a backup and so others can crib from it.
 | Service        | Image                                       | Exposed on          |
 |----------------|---------------------------------------------|---------------------|
 | traefik        | `traefik:v3.7.10`                           | `:80`, `:443` |
-| home-assistant | `homeassistant/home-assistant:2026.7.4`     | `homeassistant.urgas.eu` via Traefik |
+| home-assistant | `homeassistant/home-assistant:2026.8.0`     | `homeassistant.urgas.eu` via Traefik |
 | mosquitto      | `eclipse-mosquitto:2.1.2-alpine`            | LAN `:1883` |
 | plex           | `plexinc/pms-docker:1.43.3.10861-07dfddaeb` | `plex.urgas.eu` via Traefik, LAN `:32400` |
 | postgresql     | `postgres:15.18-trixie`                     | internal only (`homelab` network) |
@@ -21,7 +21,7 @@ and domain. I publish it as a backup and so others can crib from it.
 | bazarr         | `lscr.io/linuxserver/bazarr:1.6.0`          | `bazarr.urgas.eu` via Traefik |
 | recyclarr      | `ghcr.io/recyclarr/recyclarr:8.7.0`         | none — daily cron sync, no UI |
 | seerr          | `ghcr.io/seerr-team/seerr:v3.4.1`           | `seerr.urgas.eu` via Traefik |
-| uptime-kuma    | `louislam/uptime-kuma:2.4.0`                | `uptime.urgas.eu` via Traefik |
+| uptime-kuma    | `louislam/uptime-kuma:2.5.0`                | `uptime.urgas.eu` via Traefik |
 | homepage       | `ghcr.io/gethomepage/homepage:v1.13.2`      | `homepage.urgas.eu`, `home.urgas.eu` via Traefik |
 
 Traefik handles TLS for everything under `urgas.eu` using a Let's Encrypt
