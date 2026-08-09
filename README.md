@@ -114,6 +114,11 @@ mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,pos
 # Postgres runs as `apps` (568) and its entrypoint will not chown for itself
 chown 568:568 /mnt/ssd-storage/homelab/postgresql/pgdata
 
+# Uptime Kuma stays root inside the container, and `cap_drop: ALL` takes away
+# DAC_OVERRIDE — so root can only write files it actually owns. A stray
+# kuma.db owned by anyone else fails with `SQLITE_READONLY` in a crash loop.
+chown -R 0:0 /mnt/ssd-storage/homelab/uptime-kuma/data
+
 # acme.json must be mode 600 or Traefik refuses to use it
 install -m 600 /dev/null /mnt/ssd-storage/homelab/traefik/acme.json
 
