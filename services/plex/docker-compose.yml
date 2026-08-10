@@ -23,7 +23,8 @@ services:
     # the /config and /transcode chown, SETUID/SETGID to drop to the plex
     # user, KILL so the root s6 supervisor can signal its non-root children.
     # Everything else — NET_RAW, SYS_PTRACE, MKNOD and friends — is dropped.
-    # No devices are mapped, so there is no hardware transcoding to break.
+    # Mapping the iGPU below needs none of them back: access to a device node
+    # is decided by its file mode, not by a capability.
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -35,6 +36,21 @@ services:
       - SETUID
       - SETGID
       - KILL
+    # Hardware transcoding on the host's Ryzen 5600G iGPU (Vega 7, VCN 2.1:
+    # H.264 and HEVC encode, H.264/HEVC/VP9 decode — no AV1 either way).
+    # Requires Plex Pass, which this server has.
+    #
+    # renderD128 is the render node VAAPI actually uses; card0 comes along
+    # because Plex probes the whole directory. Both are mode 0660 on the host,
+    # root:render (gid 107) and root:video (gid 44) respectively, and PMS runs
+    # as 568 — so it needs those two as supplementary groups or every open()
+    # is EACCES. group_add takes the host's numeric gids directly; the names
+    # do not exist in the container's /etc/group and are not needed.
+    devices:
+      - /dev/dri:/dev/dri
+    group_add:
+      - "107"
+      - "44"
     ports:
       # Direct access port so LAN clients can reach Plex without going
       # through Traefik.

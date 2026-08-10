@@ -55,6 +55,13 @@ and drops to `PUID`/`PGID`, then the app itself runs with none of them. Traefik
 needs `NET_BIND_SERVICE` even as root, because the privileged-port check is
 capability-based rather than uid-based; without it, `:80` fails to bind.
 
+Plex is the one service that maps a host device: `/dev/dri`, for hardware
+transcoding on the Ryzen 5600G's iGPU. That needs no extra capability —
+access to a device node is a file-mode check, not a capability check — but it
+does need the host's `render` (107) and `video` (44) gids as supplementary
+groups, because PMS runs as 568 and the nodes are mode 0660. See the comment
+in `services/plex/docker-compose.yml`.
+
 `NET_RAW` is deliberately absent everywhere. It is what ICMP `ping` monitors and
 DHCP-based discovery want, and it also permits ARP spoofing against every other
 container on the shared `homelab` bridge. Nothing here currently needs it — add
