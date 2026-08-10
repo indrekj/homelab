@@ -7,22 +7,27 @@ and domain. I publish it as a backup and so others can crib from it.
 
 ## Services
 
-| Service        | Image                                       | Exposed on          |
-|----------------|---------------------------------------------|---------------------|
-| traefik        | `traefik:v3.7.10`                           | `:80`, `:443` |
-| home-assistant | `homeassistant/home-assistant:2026.8.1`     | `homeassistant.urgas.eu` via Traefik |
-| mosquitto      | `eclipse-mosquitto:2.1.2-alpine`            | LAN `:1883` |
-| plex           | `plexinc/pms-docker:1.43.3.10861-07dfddaeb` | `plex.urgas.eu` via Traefik, LAN `:32400` |
-| postgresql     | `postgres:15.18-trixie`                     | internal only (`homelab` network) |
-| qbittorrent    | `lscr.io/linuxserver/qbittorrent:5.2.3`     | `qbittorrent.urgas.eu` via Traefik, LAN `:6881` (peers) |
-| prowlarr       | `lscr.io/linuxserver/prowlarr:2.5.2`        | `prowlarr.urgas.eu` via Traefik |
-| radarr         | `lscr.io/linuxserver/radarr:6.3.0`          | `radarr.urgas.eu` via Traefik |
-| sonarr         | `lscr.io/linuxserver/sonarr:4.0.19`         | `sonarr.urgas.eu` via Traefik |
-| bazarr         | `lscr.io/linuxserver/bazarr:1.6.0`          | `bazarr.urgas.eu` via Traefik |
-| recyclarr      | `ghcr.io/recyclarr/recyclarr:8.7.0`         | none — daily cron sync, no UI |
-| seerr          | `ghcr.io/seerr-team/seerr:v3.4.1`           | `seerr.urgas.eu` via Traefik |
-| uptime-kuma    | `louislam/uptime-kuma:2.5.0`                | `uptime.urgas.eu` via Traefik |
-| homepage       | `ghcr.io/gethomepage/homepage:v1.13.2`      | `homepage.urgas.eu`, `home.urgas.eu` via Traefik |
+| Service        | Image                              | Exposed on          |
+|----------------|------------------------------------|---------------------|
+| traefik        | `traefik`                          | `:80`, `:443` |
+| home-assistant | `homeassistant/home-assistant`     | `homeassistant.urgas.eu` via Traefik |
+| mosquitto      | `eclipse-mosquitto`                | LAN `:1883` |
+| plex           | `plexinc/pms-docker`               | `plex.urgas.eu` via Traefik, LAN `:32400` |
+| postgresql     | `postgres`                         | internal only (`homelab` network) |
+| qbittorrent    | `lscr.io/linuxserver/qbittorrent`  | `qbittorrent.urgas.eu` via Traefik, LAN `:6881` (peers) |
+| prowlarr       | `lscr.io/linuxserver/prowlarr`     | `prowlarr.urgas.eu` via Traefik |
+| radarr         | `lscr.io/linuxserver/radarr`       | `radarr.urgas.eu` via Traefik |
+| sonarr         | `lscr.io/linuxserver/sonarr`       | `sonarr.urgas.eu` via Traefik |
+| bazarr         | `lscr.io/linuxserver/bazarr`       | `bazarr.urgas.eu` via Traefik |
+| recyclarr      | `ghcr.io/recyclarr/recyclarr`      | none — daily cron sync, no UI |
+| seerr          | `ghcr.io/seerr-team/seerr`         | `seerr.urgas.eu` via Traefik |
+| uptime-kuma    | `louislam/uptime-kuma`             | `uptime.urgas.eu` via Traefik |
+| homepage       | `ghcr.io/gethomepage/homepage`     | `homepage.urgas.eu`, `home.urgas.eu` via Traefik |
+
+Tags are deliberately absent here. Every image is pinned to an exact tag in its
+`services/<name>/docker-compose.yml`, and that file is the only place a version
+is recorded — repeating it in this table just meant a second commit after every
+Dependabot bump, and a table that was wrong whenever someone forgot.
 
 Traefik handles TLS for everything under `urgas.eu` using a Let's Encrypt
 wildcard cert obtained via the Cloudflare DNS-01 challenge.
