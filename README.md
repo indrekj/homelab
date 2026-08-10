@@ -10,7 +10,7 @@ and domain. I publish it as a backup and so others can crib from it.
 | Service        | Image                                       | Exposed on          |
 |----------------|---------------------------------------------|---------------------|
 | traefik        | `traefik:v3.7.10`                           | `:80`, `:443` |
-| home-assistant | `homeassistant/home-assistant:2026.8.0`     | `homeassistant.urgas.eu` via Traefik |
+| home-assistant | `homeassistant/home-assistant:2026.8.1`     | `homeassistant.urgas.eu` via Traefik |
 | mosquitto      | `eclipse-mosquitto:2.1.2-alpine`            | LAN `:1883` |
 | plex           | `plexinc/pms-docker:1.43.3.10861-07dfddaeb` | `plex.urgas.eu` via Traefik, LAN `:32400` |
 | postgresql     | `postgres:15.18-trixie`                     | internal only (`homelab` network) |
