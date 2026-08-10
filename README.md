@@ -15,6 +15,8 @@ and domain. I publish it as a backup and so others can crib from it.
 | plex           | `plexinc/pms-docker`               | `plex.urgas.eu` via Traefik, LAN `:32400` |
 | postgresql     | `postgres`                         | internal only (`homelab` network) |
 | qbittorrent    | `lscr.io/linuxserver/qbittorrent`  | `qbittorrent.urgas.eu` via Traefik, LAN `:6881` (peers) |
+| whisper        | `rhasspy/wyoming-whisper`          | internal only — `whisper:10300` (Wyoming) |
+| piper          | `rhasspy/wyoming-piper`            | internal only — `piper:10200` (Wyoming) |
 | prowlarr       | `lscr.io/linuxserver/prowlarr`     | `prowlarr.urgas.eu` via Traefik |
 | radarr         | `lscr.io/linuxserver/radarr`       | `radarr.urgas.eu` via Traefik |
 | sonarr         | `lscr.io/linuxserver/sonarr`       | `sonarr.urgas.eu` via Traefik |
@@ -27,7 +29,9 @@ and domain. I publish it as a backup and so others can crib from it.
 Tags are deliberately absent here. Every image is pinned to an exact tag in its
 `services/<name>/docker-compose.yml`, and that file is the only place a version
 is recorded — repeating it in this table just meant a second commit after every
-Dependabot bump, and a table that was wrong whenever someone forgot.
+Dependabot bump, and a table that was wrong whenever someone forgot. The one
+service directory that does not match its row is `services/voice-assist/`,
+which defines both whisper and piper.
 
 Traefik handles TLS for everything under `urgas.eu` using a Let's Encrypt
 wildcard cert obtained via the Cloudflare DNS-01 challenge.
