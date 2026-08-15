@@ -8,7 +8,7 @@
 # across rsync deploys instead of being clobbered by them.
 services:
   recyclarr:
-    image: ghcr.io/recyclarr/recyclarr:8.7.0
+    image: ghcr.io/recyclarr/recyclarr:8.7.1
     container_name: recyclarr
     restart: unless-stopped
     # No PUID/PGID support (not a linuxserver image); run as the media owner so
