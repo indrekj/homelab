@@ -7,6 +7,8 @@ services:
     container_name: whisper
     restart: unless-stopped
     command: --model small.en --compute-type int8 --language en
+    environment:
+      TZ: Europe/Tallinn
     # Plain Python process on an unprivileged port, no init that chowns or
     # changes user, so it needs no capabilities.
     security_opt:
@@ -28,6 +30,8 @@ services:
     container_name: piper
     restart: unless-stopped
     command: --voice en_US-lessac-medium
+    environment:
+      TZ: Europe/Tallinn
     # Same as whisper above — no capabilities required.
     security_opt:
       - no-new-privileges:true
