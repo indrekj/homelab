@@ -1,5 +1,7 @@
 # Dashboard/landing page for the whole stack. Config is declarative and lives
-# in ./config (version-controlled, mounted read-only like mosquitto.conf).
+# in ./config (version-controlled). Unlike mosquitto.conf the mount is
+# writable: Homepage writes generated defaults (docker.yaml, custom.css) and
+# its log into that directory on first start.
 #
 # Deliberately does NOT mount the docker socket. It used to, for live container
 # status tiles, but `:ro` on a socket mount only protects the file — not the

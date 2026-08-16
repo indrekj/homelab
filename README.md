@@ -10,11 +10,11 @@ and domain. I publish it as a backup and so others can crib from it.
 | Service        | Image                              | Exposed on          |
 |----------------|------------------------------------|---------------------|
 | traefik        | `traefik`                          | `:80`, `:443` |
-| home-assistant | `homeassistant/home-assistant`     | `homeassistant.urgas.eu` via Traefik |
+| home-assistant | `homeassistant/home-assistant`     | `homeassistant.urgas.eu` via Traefik, LAN `:5683/udp` (CoIoT) |
 | mosquitto      | `eclipse-mosquitto`                | LAN `:1883` |
 | plex           | `plexinc/pms-docker`               | `plex.urgas.eu` via Traefik, LAN `:32400` |
 | postgresql     | `postgres`                         | internal only (`homelab` network) |
-| qbittorrent    | `lscr.io/linuxserver/qbittorrent`  | `qbittorrent.urgas.eu` via Traefik, LAN `:6881` (peers) |
+| qbittorrent    | `lscr.io/linuxserver/qbittorrent`  | `qbittorrent.urgas.eu` via Traefik, `:6881` tcp+udp (peers, forwarded from the internet on the router) |
 | whisper        | `rhasspy/wyoming-whisper`          | internal only — `whisper:10300` (Wyoming) |
 | piper          | `rhasspy/wyoming-piper`            | internal only — `piper:10200` (Wyoming) |
 | prowlarr       | `lscr.io/linuxserver/prowlarr`     | `prowlarr.urgas.eu` via Traefik |
@@ -59,8 +59,10 @@ There are four shapes:
 | Binds a privileged port | `NET_BIND_SERVICE` | traefik |
 | Already starts as a non-root uid, or needs nothing | none | postgresql, seerr, recyclarr, homepage, uptime-kuma, whisper, piper |
 
-The s6 capabilities are for the init, not the application — s6 chowns `/config`
-and drops to `PUID`/`PGID`, then the app itself runs with none of them. Traefik
+The s6 capabilities are for the init, not the application. s6 chowns `/config`,
+and in the linuxserver images and Plex it then drops to `PUID`/`PGID`, so the
+app itself runs with none of them. Home Assistant is the exception: it stays
+root and holds the whole set for the life of the container. Traefik
 needs `NET_BIND_SERVICE` even as root, because the privileged-port check is
 capability-based rather than uid-based; without it, `:80` fails to bind.
 
@@ -109,12 +111,24 @@ it back per-service, with a comment, if that changes.
         └── config/               # declarative dashboard config (settings, services, widgets)
 ```
 
-Each `services/<name>/docker-compose.yml` is self-contained — you can paste it
-straight into TrueNAS's "Install Custom App" UI, or run `docker compose up`
-from that directory. The root `docker-compose.yml` just `include:`s all of them
-for convenience. The one exception is HTTP routing: a service pasted on its own
-comes up reachable on the `homelab` network but unrouted until its router and
-service blocks are added to `services/traefik/dynamic/routes.yml`.
+Each `services/<name>/docker-compose.yml` starts on its own with `docker
+compose up` from that directory. The root `docker-compose.yml` just `include:`s
+all of them for convenience. Three things do not come along with a single
+service, though:
+
+1. **Secrets.** Compose reads `.env` from the directory it is invoked in, not
+   from the repo root, so a per-directory run needs `--env-file ../../.env`.
+   Without it `${CLOUDFLARE_API_TOKEN}` and friends expand to empty strings and
+   the container starts misconfigured instead of failing. traefik, postgresql,
+   recyclarr and plex all read variables.
+2. **Relative bind mounts.** traefik (`./dynamic`), mosquitto
+   (`./mosquitto.conf`), homepage (`./config`) and recyclarr
+   (`./config/recyclarr.yml`) mount paths relative to the checkout. Those four
+   cannot be pasted into TrueNAS's "Install Custom App" UI as they are; the
+   rest can.
+3. **HTTP routing.** A service pasted on its own comes up reachable on the
+   `homelab` network but unrouted until its router and service blocks are added
+   to `services/traefik/dynamic/routes.yml`.
 
 ## Bootstrap
 
@@ -125,10 +139,13 @@ One-time setup on the TrueNAS host:
 docker network create homelab
 
 # Persistent directories (bind mounts)
-mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,postgresql/pgdata,qbittorrent/config,prowlarr/config,radarr/config,sonarr/config,bazarr/config,recyclarr/config,seerr/config,uptime-kuma/data}
+mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,postgresql/pgdata,qbittorrent/config,prowlarr/config,radarr/config,sonarr/config,bazarr/config,recyclarr/config,seerr/config,uptime-kuma/data,voice-assist/whisper,voice-assist/piper}
 
-# Postgres runs as `apps` (568) and its entrypoint will not chown for itself
-chown 568:568 /mnt/ssd-storage/homelab/postgresql/pgdata
+# postgresql, seerr and recyclarr run as `apps` (568) with `cap_drop: ALL`, so
+# they can write only what they already own, and none of them chowns for
+# itself. The s6 images (plex, the *arrs, qbittorrent) do their own chown and
+# are not listed here.
+chown -R 568:568 /mnt/ssd-storage/homelab/{postgresql/pgdata,seerr/config,recyclarr/config}
 
 # Uptime Kuma stays root inside the container, and `cap_drop: ALL` takes away
 # DAC_OVERRIDE — so root can only write files it actually owns. A stray
@@ -189,7 +206,7 @@ docker compose pull && docker compose up -d   # update images
 
 Every image here is pinned, and `.github/dependabot.yml` opens one grouped PR a
 week against `master` covering all of `services/*/docker-compose.yml`. Grouped
-because fourteen separate PRs for a homelab is noise; `directories: ["/services/*"]`
+because one PR per service file for a homelab is noise; `directories: ["/services/*"]`
 picks up new services automatically, so adding one needs no config change.
 
 Two things it deliberately does not do. It carries no vulnerability data for
@@ -206,8 +223,9 @@ incompatible data directory. Minor and patch bumps still come through.
 ## Secrets
 
 Secrets live in a gitignored `.env` file at the repo root. See `.env.example`
-for the full list. Compose expands `${VAR}` references in each service file
-from this one location.
+for the full list. Compose picks it up automatically only when it is invoked
+from the repo root. Running a single service from its own directory needs
+`--env-file ../../.env`, or the `${VAR}` references expand to empty strings.
 
 ## Home Assistant
 
