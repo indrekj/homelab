@@ -192,8 +192,20 @@ instead of passing silently.
 Sync files to the target server:
 
 ```sh
-rsync -avz --exclude '.git' ./ root@192.168.1.55:/mnt/ssd-storage/homelab-repo
+rsync -avz --delete \
+  --exclude '.git' --exclude '.claude' \
+  --filter 'P /.env*' --filter 'P /services/homepage/config/**' \
+  ./ root@192.168.1.55:/mnt/ssd-storage/homelab-repo
 ```
+
+`--delete` keeps the server copy equal to the local tree, so files removed
+from the repo do not linger on the server. Two kinds of server-side files are
+not in the local tree and are protected from it: `.env` backups (`P /.env*`)
+and the runtime files Homepage writes into its config mount
+(`P /services/homepage/config/**`). `.env` itself does ship with the rsync.
+That is how secrets reach the server. `.claude` is excluded because rsync
+knows nothing of gitignore and would otherwise ship local scratch state,
+such as Claude Code worktrees.
 
 Update services on the remote server:
 
