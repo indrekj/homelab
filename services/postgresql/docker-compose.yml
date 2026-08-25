@@ -23,11 +23,14 @@ services:
     # Tuning is passed as flags because the image has no conf.d include, and
     # `include_dir` is a postgresql.conf preprocessor directive rather than a
     # GUC, so it cannot be set with -c.
-    #   Max memory = shared_buffers + (temp_buffers + work_mem) * max_connections
+    #
+    # Only HA's recorder connects, so the defaults mostly stand and
+    # shared_buffers is the postgres default 128MB. Worst-case memory is about
+    # 0.8GB, which is why the service has no compose memory limit.
     command:
       - postgres
       - -c
-      - shared_buffers=16MB
+      - shared_buffers=128MB
       - -c
       - temp_buffers=4MB
       - -c
