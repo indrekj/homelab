@@ -143,6 +143,16 @@ service, though:
 
 ## Bootstrap
 
+Secrets come first and are set up locally, not on the host: run
+`cp .env.example .env` in the local checkout and fill it in. `.env` is
+gitignored but not rsync-excluded, so the deploy rsync below is what ships it
+to the server.
+
+The TrueNAS web UI must be moved off ports 80 and 443 (System Settings →
+General → GUI). Stock TrueNAS binds them on every interface, so Traefik's
+`80:80`/`443:443` publish otherwise fails with "address already in use" and
+no route comes up.
+
 One-time setup on the TrueNAS host:
 
 ```sh
@@ -165,10 +175,21 @@ chown -R 0:0 /mnt/ssd-storage/homelab/uptime-kuma/data
 
 # acme.json must be mode 600 or Traefik refuses to use it
 install -m 600 /dev/null /mnt/ssd-storage/homelab/traefik/acme.json
+```
 
-# Secrets
-cp .env.example .env
-$EDITOR .env
+### Home Assistant behind Traefik
+
+HA's own configuration lives in the untracked config bind mount, and one
+setting there is required for routing to work at all: HA rejects proxied
+requests with a 400 unless the proxy is trusted. On a fresh install add this
+to `configuration.yaml` (the range covers the `homelab` docker network,
+172.16.1.0/24, and matches what the live host runs today):
+
+```yaml
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 172.16.0.0/16
 ```
 
 ### qBittorrent WebUI host whitelist
