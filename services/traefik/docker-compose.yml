@@ -16,7 +16,9 @@ services:
     cap_add:
       - NET_BIND_SERVICE
     environment:
-      CF_DNS_API_TOKEN: ${CLOUDFLARE_API_TOKEN}
+      # Without a token Traefik fails DNS-01 quietly and serves its
+      # self-signed fallback cert, so :? fails the up instead.
+      CF_DNS_API_TOKEN: ${CLOUDFLARE_API_TOKEN:?}
     command:
       - --api.dashboard=false
       # Routing comes from ./dynamic/routes.yml, not from container labels, so
@@ -32,7 +34,7 @@ services:
       - --entrypoints.websecure.http.tls.certresolver=cloudflare
       - --entrypoints.websecure.http.tls.domains[0].main=urgas.eu
       - --entrypoints.websecure.http.tls.domains[0].sans=*.urgas.eu
-      - --certificatesresolvers.cloudflare.acme.email=${LETSENCRYPT_EMAIL}
+      - --certificatesresolvers.cloudflare.acme.email=${LETSENCRYPT_EMAIL:?}
       - --certificatesresolvers.cloudflare.acme.storage=/letsencrypt/acme.json
       - --certificatesresolvers.cloudflare.acme.dnschallenge=true
       - --certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare

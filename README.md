@@ -118,9 +118,9 @@ service, though:
 
 1. **Secrets.** Compose reads `.env` from the directory it is invoked in, not
    from the repo root, so a per-directory run needs `--env-file ../../.env`.
-   Without it `${CLOUDFLARE_API_TOKEN}` and friends expand to empty strings and
-   the container starts misconfigured instead of failing. traefik, postgresql,
-   recyclarr and plex all read variables.
+   Required secrets use `${VAR:?}`, so without it the up fails with a named
+   variable instead of starting misconfigured. traefik, postgresql, recyclarr
+   and plex all read variables.
 2. **Relative bind mounts.** traefik (`./dynamic`), mosquitto (`./config`),
    homepage (`./config`) and recyclarr (`./config`) mount paths relative to
    the checkout. Those four cannot be pasted into TrueNAS's "Install Custom
@@ -226,7 +226,9 @@ incompatible data directory. Minor and patch bumps still come through.
 Secrets live in a gitignored `.env` file at the repo root. See `.env.example`
 for the full list. Compose picks it up automatically only when it is invoked
 from the repo root. Running a single service from its own directory needs
-`--env-file ../../.env`, or the `${VAR}` references expand to empty strings.
+`--env-file ../../.env`. Required secrets are referenced as `${VAR:?}`, so a
+missing or misnamed one fails the up instead of expanding to an empty string.
+The one optional variable is `PLEX_CLAIM`, read once at first start.
 
 ## Home Assistant
 

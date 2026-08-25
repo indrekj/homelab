@@ -15,7 +15,7 @@ services:
     # be owned by 568:568 on the host before this starts.
     user: "568:568"
     environment:
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
       PGDATA: /var/lib/postgresql/data
       # Read by initdb only, on a fresh data directory — changing this later
       # has no effect on an existing cluster.
