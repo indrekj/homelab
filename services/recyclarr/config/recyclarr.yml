@@ -8,9 +8,14 @@
 # `uhd-bluray-web` / `hd-bluray-web` / `web-1080p` / `web-2160p` templates).
 # Each instance carries two profiles so individual movies/shows can opt into the
 # other resolution. trash_ids are resolved against the guides at sync time; each
-# profile's trash_id supplies its own per-format scores. The custom_format_groups
-# block is the union of both profiles' groups (a CF unused by one profile just
-# scores 0 there). See https://trash-guides.info to add more.
+# profile's trash_id supplies its own per-format scores.
+#
+# Custom format group semantics (https://recyclarr.dev/guide/cf-groups/):
+# what syncs = required + defaults - `exclude` + `select`. `select` cannot
+# remove a format, so deleting a line below does not stop it syncing. Use
+# `exclude` for that. The `select` lists below are pins, not the source of
+# truth. They keep a format syncing even if the guides stop marking it
+# default.
 
 radarr:
   # Instance names must be unique across ALL services in one config (v8), so
