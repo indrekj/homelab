@@ -6,6 +6,10 @@
 # mounted read-only, like homepage's config. Runtime state (recyclarr.db, logs,
 # the cloned trash-guides repo) lives in the host /config dir so it persists
 # across rsync deploys instead of being clobbered by them.
+#
+# The repo config is mounted as a directory into /config/configs (a location
+# recyclarr loads automatically): rsync replaces files via rename, and a
+# single-file mount would pin the old inode (see README).
 services:
   recyclarr:
     image: ghcr.io/recyclarr/recyclarr:8.7.1
@@ -29,7 +33,7 @@ services:
       - ALL
     volumes:
       - /mnt/ssd-storage/homelab/recyclarr/config:/config
-      - ./config/recyclarr.yml:/config/recyclarr.yml:ro
+      - ./config:/config/configs:ro
     networks:
       - homelab
 

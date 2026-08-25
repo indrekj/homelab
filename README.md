@@ -92,7 +92,7 @@ it back per-service, with a comment, if that changes.
     ├── home-assistant/docker-compose.yml
     ├── mosquitto/
     │   ├── docker-compose.yml
-    │   └── mosquitto.conf
+    │   └── config/               # mosquitto.conf
     ├── plex/docker-compose.yml
     ├── postgresql/docker-compose.yml
     ├── qbittorrent/docker-compose.yml
@@ -121,11 +121,12 @@ service, though:
    Without it `${CLOUDFLARE_API_TOKEN}` and friends expand to empty strings and
    the container starts misconfigured instead of failing. traefik, postgresql,
    recyclarr and plex all read variables.
-2. **Relative bind mounts.** traefik (`./dynamic`), mosquitto
-   (`./mosquitto.conf`), homepage (`./config`) and recyclarr
-   (`./config/recyclarr.yml`) mount paths relative to the checkout. Those four
-   cannot be pasted into TrueNAS's "Install Custom App" UI as they are; the
-   rest can.
+2. **Relative bind mounts.** traefik (`./dynamic`), mosquitto (`./config`),
+   homepage (`./config`) and recyclarr (`./config`) mount paths relative to
+   the checkout. Those four cannot be pasted into TrueNAS's "Install Custom
+   App" UI as they are. The rest can. All of them are directory mounts on
+   purpose: rsync deploys replace files via rename, and a running container
+   keeps the old inode of a single-file mount.
 3. **HTTP routing.** A service pasted on its own comes up reachable on the
    `homelab` network but unrouted until its router and service blocks are added
    to `services/traefik/dynamic/routes.yml`.
