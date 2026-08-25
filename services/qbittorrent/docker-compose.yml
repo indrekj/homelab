@@ -29,6 +29,14 @@ services:
       - SETUID
       - SETGID
       - KILL
+    # Trips when WebUI\ServerDomains is missing or contains `*`. See the
+    # README's "qBittorrent WebUI host whitelist" section.
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - grep '^WebUI\\ServerDomains=' /config/qBittorrent/qBittorrent.conf | grep -vq '[*]'
+      interval: 5m
+      start_period: 2m
     ports:
       # BitTorrent listen port for peer connectivity; the web UI is only
       # reachable through Traefik.
