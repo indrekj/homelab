@@ -213,19 +213,21 @@ docker compose pull && docker compose up -d   # update images
 
 Every image here is pinned, and `.github/dependabot.yml` opens one grouped PR a
 week against `master` covering all of `services/*/docker-compose.yml`. Grouped
-because one PR per service file for a homelab is noise; `directories: ["/services/*"]`
+because one PR per service file for a homelab is noise. `directories: ["/services/*"]`
 picks up new services automatically, so adding one needs no config change.
 
 Two things it deliberately does not do. It carries no vulnerability data for
-container images — the `docker-compose` ecosystem does version updates only, so
+container images: the `docker-compose` ecosystem does version updates only, so
 a PR means "a newer tag exists", never "the tag you are on has a CVE". And
 merging deploys nothing: the stack is deployed by the manual rsync above, so a
 merged PR is only a change of intent until that runs.
 
-Postgres majors are the one exception, ignored in `dependabot.yml`. Moving the
-recorder to a new major is a dump and restore rather than a tag change, and a
-grouped PR that quietly carries one would crash-loop the container against an
-incompatible data directory. Minor and patch bumps still come through.
+Majors are ignored in `dependabot.yml` for every image, because the grouped PR
+is meant to be merged on sight and must not quietly carry a breaking change.
+Postgres majors mean a dump and restore of the recorder, traefik majors rename
+static-config flags, and the *arrs migrate their databases one-way. Majors are
+done by hand as their own change. Minor and patch bumps still come through.
+The trade-off is that no PR announces a new major exists.
 
 ## Secrets
 
