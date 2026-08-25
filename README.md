@@ -256,4 +256,8 @@ The one optional variable is `PLEX_CLAIM`, read once at first start.
 
 For Shelly devices using **CoIoT**, use the following peer address: `192.168.1.55:5683`
 
-Newer Shelly devices (Generation 2 and 3) do not support CoIoT. For these devices, use **Mosquitto (MQTT)** or **WebSockets** instead.
+Newer Shelly devices (Generation 2 and 3) do not support CoIoT. For these
+devices, use **Mosquitto (MQTT)**: point the device at `192.168.1.55:1883`.
+Their outbound WebSocket option does not work with this stack: it needs
+`ws://<HA>:8123/api/shelly/ws`, and port 8123 is not published (HA is only
+reachable through Traefik on 443).
