@@ -80,6 +80,14 @@ DHCP-based discovery want, and it also permits ARP spoofing against every other
 container on the shared `homelab` bridge. Nothing here currently needs it — add
 it back per-service, with a comment, if that changes.
 
+**Resource limits** (`deploy.resources.limits`) are set only on the small
+always-on services: home-assistant, mosquitto, homepage, uptime-kuma, whisper
+and piper. For those, hitting the cap means a bug, not load. The media
+services (plex, qbittorrent, the *arrs, seerr) and the infra (traefik,
+postgresql, recyclarr) are uncapped on purpose. Their spikes, such as
+transcodes and hash rechecks, are this host's main job, and a wrong cap
+throttles exactly that work. Follow this split for new services.
+
 ## Layout
 
 ```
