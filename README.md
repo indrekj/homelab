@@ -54,15 +54,17 @@ There are four shapes:
 
 | Shape | Capabilities added | Services |
 |-------|--------------------|----------|
-| s6-based images (linuxserver, Plex, Home Assistant) | `CHOWN`, `DAC_OVERRIDE`, `FOWNER`, `SETUID`, `SETGID`, `KILL` | plex, qbittorrent, radarr, sonarr, prowlarr, bazarr, home-assistant |
-| Starts as root, drops itself via setuid | same, minus `KILL` | mosquitto |
+| s6 init that drops to a service user (linuxserver, Plex) | `CHOWN`, `DAC_OVERRIDE`, `FOWNER`, `SETUID`, `SETGID`, `KILL` | plex, qbittorrent, radarr, sonarr, prowlarr, bazarr |
+| s6 init that stays root | `CHOWN`, `DAC_OVERRIDE`, `FOWNER` | home-assistant |
+| Starts as root, drops itself via setuid | chown set plus `SETUID`, `SETGID` | mosquitto |
 | Binds a privileged port | `NET_BIND_SERVICE` | traefik |
 | Already starts as a non-root uid, or needs nothing | none | postgresql, seerr, recyclarr, homepage, uptime-kuma, whisper, piper |
 
 The s6 capabilities are for the init, not the application. s6 chowns `/config`,
 and in the linuxserver images and Plex it then drops to `PUID`/`PGID`, so the
-app itself runs with none of them. Home Assistant is the exception: it stays
-root and holds the whole set for the life of the container. Traefik
+app itself runs with none of them. `SETUID`/`SETGID` are for that drop, and
+`KILL` lets the root supervisor signal its non-root children. Home Assistant's
+s6 never changes uid (HA stays root), so it needs only the chown set. Traefik
 needs `NET_BIND_SERVICE` even as root, because the privileged-port check is
 capability-based rather than uid-based; without it, `:80` fails to bind.
 
