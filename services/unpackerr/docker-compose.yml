@@ -1,0 +1,41 @@
+# Extracts RAR-packed releases so Radarr/Sonarr can import them. Watches the
+# arr queues via their APIs, extracts into a `_unpackerred` subfolder, and
+# deletes the extracted copy a few minutes after the import. Extracting into a
+# subfolder (not the torrent root) is the point: Radarr once imported an mkv
+# mid-extraction and cut the movie off at 6 minutes.
+services:
+  unpackerr:
+    image: golift/unpackerr:0.15.2
+    container_name: unpackerr
+    restart: unless-stopped
+    # No PUID/PGID support; run as the media owner so extracted files stay
+    # readable by Plex and deletable by the *arrs.
+    user: "568:568"
+    environment:
+      TZ: Europe/Tallinn
+      # Same env vars recyclarr reads. Set in the root .env; :? fails the up
+      # instead of polling with a 401.
+      UN_RADARR_0_URL: http://radarr:7878
+      UN_RADARR_0_API_KEY: ${RADARR_API_KEY:?}
+      UN_RADARR_0_PATHS_0: /data/downloads
+      UN_SONARR_0_URL: http://sonarr:8989
+      UN_SONARR_0_API_KEY: ${SONARR_API_KEY:?}
+      UN_SONARR_0_PATHS_0: /data/downloads
+    # Already starts as 568, only polls the arr APIs and writes under /data,
+    # so nothing needs adding back.
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    volumes:
+      # Downloads only, matching the /data/downloads path the *arrs report.
+      # Unlike the *arrs and qBittorrent it never hardlinks into the library,
+      # so it gets no write access to movies/ and series/ — it extracts
+      # attacker-controlled archives as the uid that owns the whole dataset.
+      - /mnt/hdd-storage/media/downloads:/data/downloads
+    networks:
+      - homelab
+
+networks:
+  homelab:
+    external: true

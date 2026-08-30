@@ -22,6 +22,7 @@ and domain. I publish it as a backup and so others can crib from it.
 | sonarr         | `lscr.io/linuxserver/sonarr`       | `sonarr.urgas.eu` via Traefik |
 | bazarr         | `lscr.io/linuxserver/bazarr`       | `bazarr.urgas.eu` via Traefik |
 | recyclarr      | `ghcr.io/recyclarr/recyclarr`      | none — daily cron sync, no UI |
+| unpackerr      | `golift/unpackerr`                 | none — polls the *arr queues to extract RAR releases, no UI |
 | seerr          | `ghcr.io/seerr-team/seerr`         | `seerr.urgas.eu` via Traefik |
 | uptime-kuma    | `louislam/uptime-kuma`             | `uptime.urgas.eu` via Traefik |
 | homepage       | `ghcr.io/gethomepage/homepage`     | `homepage.urgas.eu`, `home.urgas.eu` via Traefik |
@@ -58,7 +59,7 @@ There are four shapes:
 | s6 init that stays root | `CHOWN`, `DAC_OVERRIDE`, `FOWNER` | home-assistant |
 | Starts as root, drops itself via setuid | chown set plus `SETUID`, `SETGID` | mosquitto |
 | Binds a privileged port | `NET_BIND_SERVICE` | traefik |
-| Already starts as a non-root uid, or needs nothing | none | postgresql, seerr, recyclarr, homepage, uptime-kuma, whisper, piper |
+| Already starts as a non-root uid, or needs nothing | none | postgresql, seerr, recyclarr, unpackerr, homepage, uptime-kuma, whisper, piper |
 
 The s6 capabilities are for the init, not the application. s6 chowns `/config`,
 and in the linuxserver images and Plex it then drops to `PUID`/`PGID`, so the
@@ -83,10 +84,10 @@ it back per-service, with a comment, if that changes.
 **Resource limits** (`deploy.resources.limits`) are set only on the small
 always-on services: home-assistant, mosquitto, homepage, uptime-kuma, whisper
 and piper. For those, hitting the cap means a bug, not load. The media
-services (plex, qbittorrent, the *arrs, seerr) and the infra (traefik,
-postgresql, recyclarr) are uncapped on purpose. Their spikes, such as
-transcodes and hash rechecks, are this host's main job, and a wrong cap
-throttles exactly that work. Follow this split for new services.
+services (plex, qbittorrent, the *arrs, unpackerr, seerr) and the infra
+(traefik, postgresql, recyclarr) are uncapped on purpose. Their spikes, such
+as transcodes, hash rechecks and RAR extraction, are this host's main job,
+and a wrong cap throttles exactly that work. Follow this split for new services.
 
 ## Layout
 
@@ -114,6 +115,7 @@ throttles exactly that work. Follow this split for new services.
     ├── recyclarr/
     │   ├── docker-compose.yml
     │   └── config/               # declarative TRaSH-Guides sync config (recyclarr.yml)
+    ├── unpackerr/docker-compose.yml
     ├── seerr/docker-compose.yml
     ├── uptime-kuma/docker-compose.yml
     └── homepage/
@@ -129,8 +131,8 @@ service, though:
 1. **Secrets.** Compose reads `.env` from the directory it is invoked in, not
    from the repo root, so a per-directory run needs `--env-file ../../.env`.
    Required secrets use `${VAR:?}`, so without it the up fails with a named
-   variable instead of starting misconfigured. traefik, postgresql, recyclarr
-   and plex all read variables.
+   variable instead of starting misconfigured. traefik, postgresql, recyclarr,
+   unpackerr and plex all read variables.
 2. **Relative bind mounts.** traefik (`./dynamic`), mosquitto (`./config`),
    homepage (`./config`) and recyclarr (`./config`) mount paths relative to
    the checkout. Those four cannot be pasted into TrueNAS's "Install Custom
