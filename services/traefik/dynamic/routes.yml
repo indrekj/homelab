@@ -59,6 +59,11 @@ http:
       entryPoints: [websecure]
       service: bazarr
 
+    cleanuparr:
+      rule: "Host(`cleanuparr.urgas.eu`)"
+      entryPoints: [websecure]
+      service: cleanuparr
+
     seerr:
       rule: "Host(`seerr.urgas.eu`)"
       entryPoints: [websecure]
@@ -109,6 +114,11 @@ http:
       loadBalancer:
         servers:
           - url: "http://bazarr:6767"
+
+    cleanuparr:
+      loadBalancer:
+        servers:
+          - url: "http://cleanuparr:11011"
 
     seerr:
       loadBalancer:

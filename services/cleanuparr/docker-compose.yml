@@ -1,0 +1,35 @@
+# Cleans the download pipeline: strikes stalled, slow, or import-failed
+# downloads in the *arr queues, removes them from qBittorrent, and triggers a
+# re-search. Behavior is configured in its web UI and stored under /config —
+# compose only wires it up.
+#
+# The unlinked-downloads cleaner is unused, so it gets no media mount. It
+# manages torrents through the qBittorrent and *arr APIs and never touches
+# files itself.
+services:
+  cleanuparr:
+    image: ghcr.io/cleanuparr/cleanuparr:2.10.5
+    container_name: cleanuparr
+    restart: unless-stopped
+    # The entrypoint has an explicit rootless mode: started with `user:` set,
+    # it skips its chown/gosu steps entirely, so nothing needs adding back
+    # after cap_drop. /config must be chowned to 568 once at bootstrap.
+    user: "568:568"
+    environment:
+      TZ: Europe/Tallinn
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:11011/health"]
+      interval: 5m
+      start_period: 2m
+    volumes:
+      - /mnt/ssd-storage/homelab/cleanuparr/config:/config
+    networks:
+      - homelab
+
+networks:
+  homelab:
+    external: true

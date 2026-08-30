@@ -23,6 +23,7 @@ and domain. I publish it as a backup and so others can crib from it.
 | bazarr         | `lscr.io/linuxserver/bazarr`       | `bazarr.urgas.eu` via Traefik |
 | recyclarr      | `ghcr.io/recyclarr/recyclarr`      | none — daily cron sync, no UI |
 | unpackerr      | `golift/unpackerr`                 | none — polls the *arr queues to extract RAR releases, no UI |
+| cleanuparr     | `ghcr.io/cleanuparr/cleanuparr`    | `cleanuparr.urgas.eu` via Traefik |
 | seerr          | `ghcr.io/seerr-team/seerr`         | `seerr.urgas.eu` via Traefik |
 | uptime-kuma    | `louislam/uptime-kuma`             | `uptime.urgas.eu` via Traefik |
 | homepage       | `ghcr.io/gethomepage/homepage`     | `homepage.urgas.eu`, `home.urgas.eu` via Traefik |
@@ -59,7 +60,7 @@ There are four shapes:
 | s6 init that stays root | `CHOWN`, `DAC_OVERRIDE`, `FOWNER` | home-assistant |
 | Starts as root, drops itself via setuid | chown set plus `SETUID`, `SETGID` | mosquitto |
 | Binds a privileged port | `NET_BIND_SERVICE` | traefik |
-| Already starts as a non-root uid, or needs nothing | none | postgresql, seerr, recyclarr, unpackerr, homepage, uptime-kuma, whisper, piper |
+| Already starts as a non-root uid, or needs nothing | none | postgresql, seerr, recyclarr, unpackerr, cleanuparr, homepage, uptime-kuma, whisper, piper |
 
 The s6 capabilities are for the init, not the application. s6 chowns `/config`,
 and in the linuxserver images and Plex it then drops to `PUID`/`PGID`, so the
@@ -84,7 +85,7 @@ it back per-service, with a comment, if that changes.
 **Resource limits** (`deploy.resources.limits`) are set only on the small
 always-on services: home-assistant, mosquitto, homepage, uptime-kuma, whisper
 and piper. For those, hitting the cap means a bug, not load. The media
-services (plex, qbittorrent, the *arrs, unpackerr, seerr) and the infra
+services (plex, qbittorrent, the *arrs, unpackerr, cleanuparr, seerr) and the infra
 (traefik, postgresql, recyclarr) are uncapped on purpose. Their spikes, such
 as transcodes, hash rechecks and RAR extraction, are this host's main job,
 and a wrong cap throttles exactly that work. Follow this split for new services.
@@ -116,6 +117,7 @@ and a wrong cap throttles exactly that work. Follow this split for new services.
     │   ├── docker-compose.yml
     │   └── config/               # declarative TRaSH-Guides sync config (recyclarr.yml)
     ├── unpackerr/docker-compose.yml
+    ├── cleanuparr/docker-compose.yml
     ├── seerr/docker-compose.yml
     ├── uptime-kuma/docker-compose.yml
     └── homepage/
@@ -162,13 +164,13 @@ One-time setup on the TrueNAS host:
 docker network create homelab
 
 # Persistent directories (bind mounts)
-mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,postgresql/pgdata,qbittorrent/config,prowlarr/config,radarr/config,sonarr/config,bazarr/config,recyclarr/config,seerr/config,uptime-kuma/data,voice-assist/whisper,voice-assist/piper}
+mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,postgresql/pgdata,qbittorrent/config,prowlarr/config,radarr/config,sonarr/config,bazarr/config,recyclarr/config,cleanuparr/config,seerr/config,uptime-kuma/data,voice-assist/whisper,voice-assist/piper}
 
-# postgresql, seerr and recyclarr run as `apps` (568) with `cap_drop: ALL`, so
-# they can write only what they already own, and none of them chowns for
-# itself. The s6 images (plex, the *arrs, qbittorrent) do their own chown and
-# are not listed here.
-chown -R 568:568 /mnt/ssd-storage/homelab/{postgresql/pgdata,seerr/config,recyclarr/config}
+# postgresql, seerr, recyclarr and cleanuparr run as `apps` (568) with
+# `cap_drop: ALL`, so they can write only what they already own, and none of
+# them chowns for itself. The s6 images (plex, the *arrs, qbittorrent) do
+# their own chown and are not listed here.
+chown -R 568:568 /mnt/ssd-storage/homelab/{postgresql/pgdata,seerr/config,recyclarr/config,cleanuparr/config}
 
 # Uptime Kuma stays root inside the container, and `cap_drop: ALL` takes away
 # DAC_OVERRIDE — so root can only write files it actually owns. A stray

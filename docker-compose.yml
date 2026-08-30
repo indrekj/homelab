@@ -13,6 +13,7 @@ include:
   - services/plex/docker-compose.yml
   - services/qbittorrent/docker-compose.yml
   - services/unpackerr/docker-compose.yml
+  - services/cleanuparr/docker-compose.yml
   - services/prowlarr/docker-compose.yml
   - services/radarr/docker-compose.yml
   - services/sonarr/docker-compose.yml
