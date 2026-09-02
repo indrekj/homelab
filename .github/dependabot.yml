@@ -21,12 +21,37 @@ updates:
       homelab:
         patterns:
           - "*"
-    # Majors are excluded for every image so the grouped PR can be merged on
-    # sight. Do majors by hand as their own change (see the README).
+    # Majors are excluded so the grouped PR can be merged on sight. Do majors
+    # by hand as their own change (see the README). The list is per image
+    # rather than "*" because Home Assistant uses calendar versions: its
+    # January release (2026.12 -> 2027.1) parses as a major and a blanket
+    # ignore would silently stop its updates for the year. Ignore has no
+    # exemption syntax, so a new service must be added here too.
     ignore:
-      - dependency-name: "*"
-        update-types:
-          - "version-update:semver-major"
+      - dependency-name: traefik
+        update-types: ["version-update:semver-major"]
+      - dependency-name: eclipse-mosquitto
+        update-types: ["version-update:semver-major"]
+      - dependency-name: plexinc/pms-docker
+        update-types: ["version-update:semver-major"]
+      - dependency-name: lscr.io/linuxserver/*
+        update-types: ["version-update:semver-major"]
+      - dependency-name: golift/unpackerr
+        update-types: ["version-update:semver-major"]
+      - dependency-name: ghcr.io/cleanuparr/cleanuparr
+        update-types: ["version-update:semver-major"]
+      - dependency-name: ghcr.io/recyclarr/recyclarr
+        update-types: ["version-update:semver-major"]
+      - dependency-name: ghcr.io/seerr-team/seerr
+        update-types: ["version-update:semver-major"]
+      - dependency-name: postgres
+        update-types: ["version-update:semver-major"]
+      - dependency-name: rhasspy/*
+        update-types: ["version-update:semver-major"]
+      - dependency-name: louislam/uptime-kuma
+        update-types: ["version-update:semver-major"]
+      - dependency-name: ghcr.io/gethomepage/homepage
+        update-types: ["version-update:semver-major"]
     open-pull-requests-limit: 3
     commit-message:
       prefix: "Bump"

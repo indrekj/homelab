@@ -273,7 +273,8 @@ docker compose pull && docker compose up -d   # update images
 Every image here is pinned, and `.github/dependabot.yml` opens one grouped PR a
 week against `master` covering all of `services/*/docker-compose.yml`. Grouped
 because one PR per service file for a homelab is noise. `directories: ["/services/*"]`
-picks up new services automatically, so adding one needs no config change.
+picks up new services automatically. Adding one needs no change there, only
+an entry in the majors ignore list described below.
 
 Two things it deliberately does not do. It carries no vulnerability data for
 container images: the `docker-compose` ecosystem does version updates only, so
@@ -281,12 +282,18 @@ a PR means "a newer tag exists", never "the tag you are on has a CVE". And
 merging deploys nothing: the stack is deployed by the manual rsync above, so a
 merged PR is only a change of intent until that runs.
 
-Majors are ignored in `dependabot.yml` for every image, because the grouped PR
-is meant to be merged on sight and must not quietly carry a breaking change.
-Postgres majors mean a dump and restore of the recorder, traefik majors rename
-static-config flags, and the *arrs migrate their databases one-way. Majors are
-done by hand as their own change. Minor and patch bumps still come through.
-The trade-off is that no PR announces a new major exists.
+Majors are ignored in `dependabot.yml`, because the grouped PR is meant to be
+merged on sight and must not quietly carry a breaking change. Postgres majors
+mean a dump and restore of the recorder, traefik majors rename static-config
+flags, and the *arrs migrate their databases one-way. Majors are done by hand
+as their own change. Minor and patch bumps still come through. The trade-off
+is that no PR announces a new major exists.
+
+The ignore is listed per image rather than as `*`, with Home Assistant left
+out. HA uses calendar versions, so its January release (2026.12 to 2027.1)
+parses as a major, and a blanket ignore would silently stop its updates for
+the year. Dependabot has no exemption syntax, so a new service with a
+breaking-major policy needs its own entry in that list.
 
 ## Secrets
 
