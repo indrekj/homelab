@@ -29,12 +29,16 @@ services:
       - SETUID
       - SETGID
       - KILL
-    # Trips when WebUI\ServerDomains is missing or contains `*`. See the
+    # Trips when WebUI\ServerDomains is missing or contains `*`, or when
+    # host-header validation is switched off altogether (the key is absent
+    # while it is on, so only an explicit `false` is checked). See the
     # README's "qBittorrent WebUI host whitelist" section.
     healthcheck:
       test:
         - CMD-SHELL
-        - grep '^WebUI\\ServerDomains=' /config/qBittorrent/qBittorrent.conf | grep -vq '[*]'
+        - >-
+          grep '^WebUI\\ServerDomains=' /config/qBittorrent/qBittorrent.conf | grep -vq '[*]'
+          && ! grep -q '^WebUI\\HostHeaderValidation=false' /config/qBittorrent/qBittorrent.conf
       interval: 5m
       start_period: 2m
     ports:

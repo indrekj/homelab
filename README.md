@@ -223,7 +223,9 @@ after it, locking out the *arrs with a 401. Stop the container before editing;
 qBittorrent rewrites the file on exit.
 
 The compose file carries a healthcheck that greps the live config for this
-setting, so a reverted whitelist shows up as `unhealthy` in `docker ps`
+setting, and for the "Enable Host header validation" toggle being switched off
+(`WebUI\HostHeaderValidation=false`), which bypasses the whitelist entirely. A
+reverted whitelist or a disabled check shows up as `unhealthy` in `docker ps`
 instead of passing silently.
 
 ## Deployment
