@@ -1,7 +1,10 @@
 # Dashboard/landing page for the whole stack. Config is declarative and lives
-# in ./config (version-controlled). Unlike mosquitto.conf the mount is
-# writable: Homepage writes generated defaults (docker.yaml, custom.css) and
-# its log into that directory on first start.
+# in ./config (version-controlled), mounted read-only like mosquitto.conf.
+# Homepage exits 1 if any of its nine config files is missing and it cannot
+# copy the skeleton in, so the unused ones (docker.yaml, kubernetes.yaml,
+# proxmox.yaml, custom.css, custom.js) are committed as the stock skeletons.
+# The log goes to stdout instead of ./config/logs. With nothing to write, the
+# rsync-owned checkout can stay whatever uid the deploy leaves it as.
 #
 # Deliberately does NOT mount the docker socket. It used to, for live container
 # status tiles, but `:ro` on a socket mount only protects the file — not the
@@ -22,6 +25,8 @@ services:
       # services/traefik/dynamic/routes.yml must be mirrored here, or Traefik
       # routes it and Homepage rejects it.
       HOMEPAGE_ALLOWED_HOSTS: homepage.urgas.eu,home.urgas.eu,homepage:3000
+      # Default is "both", which also appends to ./config/logs/homepage.log.
+      LOG_TARGETS: stdout
     # Plain Node process on an unprivileged port, with no init that chowns or
     # changes user, so it needs no capabilities at all.
     security_opt:
@@ -29,7 +34,7 @@ services:
     cap_drop:
       - ALL
     volumes:
-      - ./config:/app/config
+      - ./config:/app/config:ro
     networks:
       - homelab
     deploy:

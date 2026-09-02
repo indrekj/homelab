@@ -241,18 +241,18 @@ Sync files to the target server:
 ```sh
 rsync -avz --delete \
   --exclude '.git' --exclude '.claude' \
-  --filter 'P /.env*' --filter 'P /services/homepage/config/**' \
+  --filter 'P /.env*' \
   ./ root@192.168.1.55:/mnt/ssd-storage/homelab-repo
 ```
 
 `--delete` keeps the server copy equal to the local tree, so files removed
-from the repo do not linger on the server. Two kinds of server-side files are
-not in the local tree and are protected from it: `.env` backups (`P /.env*`)
-and the runtime files Homepage writes into its config mount
-(`P /services/homepage/config/**`). `.env` itself does ship with the rsync.
-That is how secrets reach the server. `.claude` is excluded because rsync
-knows nothing of gitignore and would otherwise ship local scratch state,
-such as Claude Code worktrees.
+from the repo do not linger on the server. The one kind of server-side file
+that is not in the local tree, and is protected from it, is `.env` backups
+(`P /.env*`). `.env` itself does ship with the rsync. That is how secrets
+reach the server. `.claude` is excluded because rsync knows nothing of
+gitignore and would otherwise ship local scratch state, such as Claude Code
+worktrees. No container writes into the checkout: every relative bind mount
+in it is read-only.
 
 Update services on the remote server:
 
