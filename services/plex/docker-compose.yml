@@ -57,6 +57,11 @@ services:
       - "32400:32400"
     volumes:
       - /mnt/ssd-storage/homelab/plex/config:/config
+      # Transcode segments (TranscoderTempDirectory). Without a mount the
+      # image's VOLUME lands them in an anonymous Docker volume that every
+      # recreate orphans. A full session's worth of segments is kept until
+      # playback stops, so this can reach 10GB or more per viewer.
+      - /mnt/ssd-storage/homelab/plex/transcode:/transcode
       - /mnt/hdd-storage/media:/media:ro
     networks:
       - homelab

@@ -168,7 +168,7 @@ One-time setup on the TrueNAS host:
 docker network create homelab
 
 # Persistent directories (bind mounts)
-mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,postgresql/pgdata,qbittorrent/config,prowlarr/config,radarr/config,sonarr/config,bazarr/config,recyclarr/config,cleanuparr/config,seerr/config,uptime-kuma/data,voice-assist/whisper,voice-assist/piper}
+mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,plex/transcode,postgresql/pgdata,qbittorrent/config,prowlarr/config,radarr/config,sonarr/config,bazarr/config,recyclarr/config,cleanuparr/config,seerr/config,uptime-kuma/data,voice-assist/whisper,voice-assist/piper}
 
 # unpackerr bind-mounts downloads/ directly. If it does not exist yet Docker
 # creates it root-owned, and qBittorrent (568) can no longer write downloads.
