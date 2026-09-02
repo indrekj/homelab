@@ -1,6 +1,6 @@
 services:
   traefik:
-    image: traefik:v3.7.10
+    image: traefik:v3.7.12
     container_name: traefik
     restart: unless-stopped
     # Traefik runs as root and terminates TLS for every service, which makes it
