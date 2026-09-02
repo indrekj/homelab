@@ -3,7 +3,7 @@
 # network as whisper:10300 and piper:10200.
 services:
   whisper:
-    image: rhasspy/wyoming-whisper:3.5.0
+    image: rhasspy/wyoming-whisper:3.7.0
     container_name: whisper
     restart: unless-stopped
     command: --model small.en --compute-type int8 --language en
@@ -26,7 +26,7 @@ services:
           memory: 2G
 
   piper:
-    image: rhasspy/wyoming-piper:2.4.0
+    image: rhasspy/wyoming-piper:2.4.2
     container_name: piper
     restart: unless-stopped
     command: --voice en_US-lessac-medium

@@ -1,6 +1,6 @@
 services:
   home-assistant:
-    image: homeassistant/home-assistant:2026.8.1
+    image: homeassistant/home-assistant:2026.8.3
     container_name: home-assistant
     restart: unless-stopped
     # HA's s6 init stays root and never drops to a service user, so only the
