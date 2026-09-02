@@ -170,6 +170,12 @@ docker network create homelab
 # Persistent directories (bind mounts)
 mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,postgresql/pgdata,qbittorrent/config,prowlarr/config,radarr/config,sonarr/config,bazarr/config,recyclarr/config,cleanuparr/config,seerr/config,uptime-kuma/data,voice-assist/whisper,voice-assist/piper}
 
+# unpackerr bind-mounts downloads/ directly. If it does not exist yet Docker
+# creates it root-owned, and qBittorrent (568) can no longer write downloads.
+# The *arrs and qBittorrent mount the whole dataset, so nothing else needs
+# pre-creating.
+install -d -o 568 -g 568 /mnt/hdd-storage/media/downloads
+
 # postgresql, seerr, recyclarr and cleanuparr run as `apps` (568) with
 # `cap_drop: ALL`, so they can write only what they already own, and none of
 # them chowns for itself. The s6 images (plex, the *arrs, qbittorrent) do
