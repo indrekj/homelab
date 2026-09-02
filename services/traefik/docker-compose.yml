@@ -5,16 +5,14 @@ services:
     restart: unless-stopped
     # Traefik runs as root and terminates TLS for every service, which makes it
     # the most reachable container in the stack and the worst one to leave with
-    # the default capability set. It needs exactly one: NET_BIND_SERVICE, to
-    # bind :80 and :443 — dropping ALL without adding it back fails even as
-    # root, because the privileged-port check is capability-based. Reading its
-    # own root-owned 0600 acme.json needs nothing extra.
+    # the default capability set. It needs none. Binding :80 and :443 does not
+    # need NET_BIND_SERVICE: Docker sets ip_unprivileged_port_start=0 in every
+    # container network namespace, so no port is privileged in here. Reading
+    # its own root-owned 0600 acme.json needs nothing extra either.
     security_opt:
       - no-new-privileges:true
     cap_drop:
       - ALL
-    cap_add:
-      - NET_BIND_SERVICE
     environment:
       # Without a token Traefik fails DNS-01 quietly and serves its
       # self-signed fallback cert, so :? fails the up instead.

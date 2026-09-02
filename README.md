@@ -58,17 +58,21 @@ There are four shapes:
 |-------|--------------------|----------|
 | s6 init that drops to a service user (linuxserver, Plex) | `CHOWN`, `DAC_OVERRIDE`, `FOWNER`, `SETUID`, `SETGID`, `KILL` | plex, qbittorrent, radarr, sonarr, prowlarr, bazarr |
 | s6 init that stays root | `CHOWN`, `DAC_OVERRIDE`, `FOWNER` | home-assistant |
-| Starts as root, drops itself via setuid | chown set plus `SETUID`, `SETGID` | mosquitto |
-| Binds a privileged port | `NET_BIND_SERVICE` | traefik |
-| Already starts as a non-root uid, or needs nothing | none | postgresql, seerr, recyclarr, unpackerr, cleanuparr, homepage, uptime-kuma, whisper, piper |
+| Starts as root, drops itself via setuid | `SETUID`, `SETGID` | mosquitto |
+| Already starts as a non-root uid, or needs nothing | none | traefik, postgresql, seerr, recyclarr, unpackerr, cleanuparr, homepage, uptime-kuma, whisper, piper |
 
 The s6 capabilities are for the init, not the application. s6 chowns `/config`,
 and in the linuxserver images and Plex it then drops to `PUID`/`PGID`, so the
 app itself runs with none of them. `SETUID`/`SETGID` are for that drop, and
 `KILL` lets the root supervisor signal its non-root children. Home Assistant's
-s6 never changes uid (HA stays root), so it needs only the chown set. Traefik
-needs `NET_BIND_SERVICE` even as root, because the privileged-port check is
-capability-based rather than uid-based; without it, `:80` fails to bind.
+s6 never changes uid (HA stays root), so it needs only the chown set.
+
+`NET_BIND_SERVICE` is not needed to bind `:80` and `:443`. Docker sets
+`net.ipv4.ip_unprivileged_port_start=0` inside every container network
+namespace, so no port is privileged there and Traefik binds both with no
+capabilities at all. Mosquitto's entrypoint chowns `/mosquitto/data`, but that
+directory is not mounted, ships owned by `mosquitto`, and the chown is wrapped
+in `|| true`, so it gets no chown capabilities either.
 
 Plex is the one service that maps a host device: `/dev/dri`, for hardware
 transcoding on the Ryzen 5600G's iGPU. That needs no extra capability —
