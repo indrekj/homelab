@@ -4,7 +4,7 @@
 #
 # Bootstrap once per host:
 #   docker network create homelab
-#   install -m 600 /dev/null /mnt/ssd-storage/homelab/traefik/acme.json
+#   [ -e /mnt/ssd-storage/homelab/traefik/acme.json ] || install -m 600 /dev/null /mnt/ssd-storage/homelab/traefik/acme.json
 
 include:
   - services/traefik/docker-compose.yml

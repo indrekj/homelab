@@ -181,8 +181,10 @@ chown -R 568:568 /mnt/ssd-storage/homelab/{postgresql/pgdata,seerr/config,recycl
 # kuma.db owned by anyone else fails with `SQLITE_READONLY` in a crash loop.
 chown -R 0:0 /mnt/ssd-storage/homelab/uptime-kuma/data
 
-# acme.json must be mode 600 or Traefik refuses to use it
-install -m 600 /dev/null /mnt/ssd-storage/homelab/traefik/acme.json
+# acme.json must be mode 600 or Traefik refuses to use it. Guarded because
+# `install` replaces an existing file: re-running it would wipe the issued
+# certificates, and a running Traefik would keep writing to the old inode.
+[ -e /mnt/ssd-storage/homelab/traefik/acme.json ] || install -m 600 /dev/null /mnt/ssd-storage/homelab/traefik/acme.json
 ```
 
 ### Home Assistant behind Traefik
