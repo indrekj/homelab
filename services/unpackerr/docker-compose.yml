@@ -5,7 +5,7 @@
 # mid-extraction and cut the movie off at 6 minutes.
 services:
   unpackerr:
-    image: golift/unpackerr:0.15.2
+    image: golift/unpackerr:0.16.1
     container_name: unpackerr
     restart: unless-stopped
     # No PUID/PGID support; run as the media owner so extracted files stay
