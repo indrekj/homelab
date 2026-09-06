@@ -25,6 +25,7 @@ and domain. I publish it as a backup and so others can crib from it.
 | unpackerr      | `golift/unpackerr`                 | none — polls the *arr queues to extract RAR releases, no UI |
 | cleanuparr     | `ghcr.io/cleanuparr/cleanuparr`    | `cleanuparr.urgas.eu` via Traefik |
 | seerr          | `ghcr.io/seerr-team/seerr`         | `seerr.urgas.eu` via Traefik |
+| tautulli       | `ghcr.io/tautulli/tautulli`        | `tautulli.urgas.eu` via Traefik |
 | uptime-kuma    | `louislam/uptime-kuma`             | `uptime.urgas.eu` via Traefik |
 | homepage       | `ghcr.io/gethomepage/homepage`     | `homepage.urgas.eu`, `home.urgas.eu` via Traefik |
 
@@ -59,7 +60,7 @@ There are four shapes:
 | s6 init that drops to a service user (linuxserver, Plex) | `CHOWN`, `DAC_OVERRIDE`, `FOWNER`, `SETUID`, `SETGID`, `KILL` | plex, qbittorrent, radarr, sonarr, prowlarr, bazarr |
 | s6 init that stays root | `CHOWN`, `DAC_OVERRIDE`, `FOWNER` | home-assistant |
 | Starts as root, drops itself via setuid | `SETUID`, `SETGID` | mosquitto |
-| Already starts as a non-root uid, or needs nothing | none | traefik, postgresql, seerr, recyclarr, unpackerr, cleanuparr, homepage, uptime-kuma, whisper, piper |
+| Already starts as a non-root uid, or needs nothing | none | traefik, postgresql, seerr, tautulli, recyclarr, unpackerr, cleanuparr, homepage, uptime-kuma, whisper, piper |
 
 The s6 capabilities are for the init, not the application. s6 chowns `/config`,
 and in the linuxserver images and Plex it then drops to `PUID`/`PGID`, so the
@@ -87,8 +88,8 @@ container on the shared `homelab` bridge. Nothing here currently needs it — ad
 it back per-service, with a comment, if that changes.
 
 **Resource limits** (`deploy.resources.limits`) are set only on the small
-always-on services: home-assistant, mosquitto, homepage, uptime-kuma, whisper
-and piper. For those, hitting the cap means a bug, not load. The media
+always-on services: home-assistant, mosquitto, homepage, uptime-kuma, tautulli,
+whisper and piper. For those, hitting the cap means a bug, not load. The media
 services (plex, qbittorrent, the *arrs, unpackerr, cleanuparr, seerr) and the infra
 (traefik, postgresql, recyclarr) are uncapped on purpose. Their spikes, such
 as transcodes, hash rechecks and RAR extraction, are this host's main job,
@@ -123,6 +124,7 @@ and a wrong cap throttles exactly that work. Follow this split for new services.
     ├── unpackerr/docker-compose.yml
     ├── cleanuparr/docker-compose.yml
     ├── seerr/docker-compose.yml
+    ├── tautulli/docker-compose.yml
     ├── uptime-kuma/docker-compose.yml
     └── homepage/
         ├── docker-compose.yml
@@ -168,7 +170,7 @@ One-time setup on the TrueNAS host:
 docker network create homelab
 
 # Persistent directories (bind mounts)
-mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,plex/transcode,postgresql/pgdata,qbittorrent/config,prowlarr/config,radarr/config,sonarr/config,bazarr/config,recyclarr/config,cleanuparr/config,seerr/config,uptime-kuma/data,voice-assist/whisper,voice-assist/piper}
+mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,plex/transcode,postgresql/pgdata,qbittorrent/config,prowlarr/config,radarr/config,sonarr/config,bazarr/config,recyclarr/config,cleanuparr/config,seerr/config,tautulli/config,uptime-kuma/data,voice-assist/whisper,voice-assist/piper}
 
 # unpackerr bind-mounts downloads/ directly. If it does not exist yet Docker
 # creates it root-owned, and qBittorrent (568) can no longer write downloads.
@@ -176,11 +178,11 @@ mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,ple
 # pre-creating.
 install -d -o 568 -g 568 /mnt/hdd-storage/media/downloads
 
-# postgresql, seerr, recyclarr and cleanuparr run as `apps` (568) with
-# `cap_drop: ALL`, so they can write only what they already own, and none of
-# them chowns for itself. The s6 images (plex, the *arrs, qbittorrent) do
+# postgresql, seerr, tautulli, recyclarr and cleanuparr run as `apps` (568)
+# with `cap_drop: ALL`, so they can write only what they already own, and none
+# of them chowns for itself. The s6 images (plex, the *arrs, qbittorrent) do
 # their own chown and are not listed here.
-chown -R 568:568 /mnt/ssd-storage/homelab/{postgresql/pgdata,seerr/config,recyclarr/config,cleanuparr/config}
+chown -R 568:568 /mnt/ssd-storage/homelab/{postgresql/pgdata,seerr/config,tautulli/config,recyclarr/config,cleanuparr/config}
 
 # Uptime Kuma stays root inside the container, and `cap_drop: ALL` takes away
 # DAC_OVERRIDE — so root can only write files it actually owns. A stray

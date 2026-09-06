@@ -44,6 +44,8 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: ghcr.io/seerr-team/seerr
         update-types: ["version-update:semver-major"]
+      - dependency-name: ghcr.io/tautulli/tautulli
+        update-types: ["version-update:semver-major"]
       - dependency-name: postgres
         update-types: ["version-update:semver-major"]
       - dependency-name: rhasspy/*

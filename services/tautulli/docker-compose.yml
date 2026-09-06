@@ -1,0 +1,40 @@
+# Plex monitoring: playback history, per-user stats and stream notifications.
+# It talks to Plex over the homelab network (http://plex:32400) with a Plex
+# token, so Plex's ALLOWED_NETWORKS does not need the docker bridge. Everything
+# else is configured in its web UI and stored under /config.
+services:
+  tautulli:
+    image: ghcr.io/tautulli/tautulli:v2.18.1
+    container_name: tautulli
+    restart: unless-stopped
+    # The image's start.sh starts as root, remaps the tautulli user to
+    # PUID/PGID, chowns /config and drops privileges with gosu. That would
+    # need CHOWN, DAC_OVERRIDE, FOWNER, SETUID and SETGID added back. Starting
+    # directly as 568 makes all of it unnecessary, so the entrypoint is
+    # bypassed and the image's CMD restated: a non-null entrypoint also
+    # discards the image's CMD. Tautulli itself does not depend on the script;
+    # it reads TAUTULLI_DOCKER from the image env and treats the missing
+    # /config/DOCKER marker as "volume mounted". /config must be chowned to
+    # 568 once at bootstrap.
+    user: "568:568"
+    entrypoint: []
+    command: ["python", "Tautulli.py", "--datadir", "/config"]
+    environment:
+      TZ: Europe/Tallinn
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    volumes:
+      - /mnt/ssd-storage/homelab/tautulli/config:/config
+    networks:
+      - homelab
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
+networks:
+  homelab:
+    external: true

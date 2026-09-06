@@ -12,6 +12,10 @@
         icon: overseerr.png
         href: https://seerr.urgas.eu
         description: Media requests
+    - Tautulli:
+        icon: tautulli.png
+        href: https://tautulli.urgas.eu
+        description: Plex stats
 
 - Automation:
     - Prowlarr:
