@@ -176,6 +176,10 @@ mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,ple
 # creates it root-owned, and qBittorrent (568) can no longer write downloads.
 # The *arrs and qBittorrent mount the whole dataset, so nothing else needs
 # pre-creating.
+#
+# downloads/, movies/ and series/ must stay plain directories inside the one
+# hdd-storage/media ZFS dataset. Hardlinks cannot cross datasets, so a child
+# dataset per directory makes every *arr import a silent full copy.
 install -d -o 568 -g 568 /mnt/hdd-storage/media/downloads
 
 # postgresql, seerr, tautulli, recyclarr and cleanuparr run as `apps` (568)
