@@ -57,12 +57,28 @@ services:
       - "32400:32400"
     volumes:
       - /mnt/ssd-storage/homelab/plex/config:/config
-      # Transcode segments (TranscoderTempDirectory). Without a mount the
-      # image's VOLUME lands them in an anonymous Docker volume that every
-      # recreate orphans. A full session's worth of segments is kept until
-      # playback stops, so this can reach 10GB or more per viewer.
-      - /mnt/ssd-storage/homelab/plex/transcode:/transcode
       - /mnt/hdd-storage/media:/media:ro
+    # Plex's scratch space lives in RAM so it does not wear the SSD mirror.
+    # /transcode holds transcode segments (TranscoderTempDirectory). /tmp
+    # holds the Easy Audio Encoder's uncompressed WAV for EAC3 and TrueHD
+    # audio, about 35 MB/min per stream. Without a mount, /tmp is the
+    # container's overlay layer on ssd-storage.
+    #
+    # The size caps are what keep this safe. Plex keeps a session's segments
+    # until playback stops, which can pass 10GB per viewer, but when the
+    # directory is full it deletes segments that have already played instead
+    # of failing. /tmp also takes the audio that intro and credits detection
+    # extracts for a whole season. Both sizes are judgment calls, about a
+    # third of the 30GB of RAM together, and only what is in use takes
+    # memory. Both mounts start empty on every recreate, which is fine for
+    # scratch data.
+    #
+    # `exec` is required. Docker mounts tmpfs noexec by default, and the EAE
+    # binary runs from its folder under /tmp, so EAC3 and TrueHD streams fail
+    # with "EAE timeout! EAE not running" without it.
+    tmpfs:
+      - /transcode:size=6g,exec
+      - /tmp:size=4g,exec
     networks:
       - homelab
 
