@@ -1,0 +1,3 @@
+regex:(?i)\.(mkv|mp4|m4v|avi|ts|m2ts|mov|wmv|webm|mpg|mpeg)$
+regex:(?i)\.(srt|ass|ssa|sub|idx|sup|vtt)$
+regex:(?i)\.(rar|[r-z]\d{2})$

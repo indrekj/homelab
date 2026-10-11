@@ -150,7 +150,9 @@ left at its default: its cron script passes `RECYCLARR_LOG_LEVEL` as one
     │   ├── docker-compose.yml
     │   └── config/               # declarative TRaSH-Guides sync config (recyclarr.yml)
     ├── unpackerr/docker-compose.yml
-    ├── cleanuparr/docker-compose.yml
+    ├── cleanuparr/
+    │   ├── docker-compose.yml
+    │   └── allowlist/            # malware blocker allowlist: video, subtitles, RAR volumes
     ├── seerr/docker-compose.yml
     ├── tautulli/docker-compose.yml
     ├── uptime-kuma/docker-compose.yml
@@ -171,11 +173,12 @@ service, though:
    variable instead of starting misconfigured. traefik, postgresql, recyclarr,
    unpackerr and plex all read variables.
 2. **Relative bind mounts.** traefik (`./dynamic`), mosquitto (`./config`),
-   homepage (`./config`) and recyclarr (`./config`) mount paths relative to
-   the checkout. Those four cannot be pasted into TrueNAS's "Install Custom
-   App" UI as they are. The rest can. All of them are directory mounts on
-   purpose: rsync deploys replace files via rename, and a running container
-   keeps the old inode of a single-file mount.
+   homepage (`./config`), recyclarr (`./config`) and cleanuparr
+   (`./allowlist`) mount paths relative to the checkout. Those five cannot be
+   pasted into TrueNAS's "Install Custom App" UI as they are. The rest can.
+   All of them are directory mounts on purpose: rsync deploys replace files
+   via rename, and a running container keeps the old inode of a single-file
+   mount.
 3. **HTTP routing.** A service pasted on its own comes up reachable on the
    `homelab` network but unrouted until its router and service blocks are added
    to `services/traefik/dynamic/routes.yml`.

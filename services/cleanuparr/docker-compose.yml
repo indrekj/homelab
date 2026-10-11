@@ -27,6 +27,24 @@ services:
       start_period: 2m
     volumes:
       - /mnt/ssd-storage/homelab/cleanuparr/config:/config
+      # The malware blocker's allowlist for Radarr and Sonarr: video,
+      # subtitles and RAR volumes (.rar, then .r00 to .z99). Every other
+      # file in a torrent is deselected, and a torrent with nothing left is
+      # removed and searched again. Path /allowlist/allowlist and list type
+      # "whitelist" (Cleanuparr's name for it) are set in the UI and stored
+      # in cleanuparr.db.
+      #
+      # It replaces the community blocklist, which lists .rar and some .rNN
+      # volumes. With delete_if_any_file_blocked off, the blocker deselected
+      # those and left gaps in every RAR release that Unpackerr can never
+      # extract. Archive contents are not checked, but Radarr and Sonarr
+      # import only the video file and Unpackerr deletes the rest.
+      #
+      # Only `regex:` lines go in the file, with (?i) for case. Cleanuparr
+      # treats any other line, blank or comment, as a glob, and in allowlist
+      # mode a file must then match a glob and a regex, which nothing does.
+      # A directory mount, like the other repo configs (see README).
+      - ./allowlist:/allowlist:ro
     networks:
       - homelab
 
