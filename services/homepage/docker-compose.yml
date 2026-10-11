@@ -27,6 +27,7 @@ services:
       HOMEPAGE_ALLOWED_HOSTS: homepage.urgas.eu,home.urgas.eu,homepage:3000
       # Default is "both", which also appends to ./config/logs/homepage.log.
       LOG_TARGETS: stdout
+      LOG_LEVEL: warn
     # Plain Node process on an unprivileged port, with no init that chowns or
     # changes user, so it needs no capabilities at all.
     security_opt:

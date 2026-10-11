@@ -11,6 +11,11 @@ services:
     restart: unless-stopped
     environment:
       TZ: Europe/Tallinn
+      # Web UI, collector and the bundled InfluxDB. At warn the web UI's
+      # request log keeps only 4xx and 5xx responses.
+      SCRUTINY_LOG_LEVEL: WARN
+      COLLECTOR_LOG_LEVEL: WARN
+      INFLUXD_LOG_LEVEL: warn
     # The image's s6 init and every service in it stay root. With no
     # DAC_OVERRIDE, root can write only what it owns, so the two bind mounts
     # must be owned by 0:0. Each capability below was checked on the host by
