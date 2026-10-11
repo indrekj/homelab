@@ -13,6 +13,11 @@ services:
     user: "568:568"
     environment:
       TZ: Europe/Tallinn
+      # Unpackerr has no warn level, only info and debug. These drop its two
+      # biggest sources of info lines: the queue summary is logged only when
+      # something is queued, and at most hourly instead of every minute.
+      UN_ACTIVITY: "true"
+      UN_LOG_QUEUES: 1h
       # Same env vars recyclarr reads. Set in the root .env; :? fails the up
       # instead of polling with a 401.
       UN_RADARR_0_URL: http://radarr:7878
