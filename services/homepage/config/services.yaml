@@ -6,7 +6,7 @@
 - Media:
     - Plex:
         icon: plex.png
-        href: https://plex.urgas.eu
+        href: https://plex.urgas.eu/web
         description: Media server
     - Seerr:
         icon: overseerr.png
