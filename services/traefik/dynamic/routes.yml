@@ -79,6 +79,11 @@ http:
       entryPoints: [websecure]
       service: uptime-kuma
 
+    scrutiny:
+      rule: "Host(`scrutiny.urgas.eu`)"
+      entryPoints: [websecure]
+      service: scrutiny
+
     homepage:
       rule: "Host(`homepage.urgas.eu`) || Host(`home.urgas.eu`)"
       entryPoints: [websecure]
@@ -139,6 +144,11 @@ http:
       loadBalancer:
         servers:
           - url: "http://uptime-kuma:3001"
+
+    scrutiny:
+      loadBalancer:
+        servers:
+          - url: "http://scrutiny:8080"
 
     homepage:
       loadBalancer:

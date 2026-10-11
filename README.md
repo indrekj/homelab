@@ -27,6 +27,7 @@ and domain. I publish it as a backup and so others can crib from it.
 | seerr          | `ghcr.io/seerr-team/seerr`         | `seerr.urgas.eu` via Traefik |
 | tautulli       | `ghcr.io/tautulli/tautulli`        | `tautulli.urgas.eu` via Traefik |
 | uptime-kuma    | `louislam/uptime-kuma`             | `uptime.urgas.eu` via Traefik |
+| scrutiny       | `ghcr.io/analogj/scrutiny`         | `scrutiny.urgas.eu` via Traefik |
 | homepage       | `ghcr.io/gethomepage/homepage`     | `homepage.urgas.eu`, `home.urgas.eu` via Traefik |
 
 Tags are deliberately absent here. Every image is pinned to an exact tag in its
@@ -53,13 +54,14 @@ put a `docker-socket-proxy` in front of it rather than mounting the socket.
 
 **Every container runs with `cap_drop: ALL` and `no-new-privileges:true`**, and
 adds back only what it demonstrably needs. New services should follow suit.
-There are four shapes:
+There are five shapes:
 
 | Shape | Capabilities added | Services |
 |-------|--------------------|----------|
 | s6 init that drops to a service user (linuxserver, Plex) | `CHOWN`, `DAC_OVERRIDE`, `FOWNER`, `SETUID`, `SETGID`, `KILL` | plex, qbittorrent, radarr, sonarr, prowlarr, bazarr |
 | s6 init that stays root | `CHOWN`, `DAC_OVERRIDE`, `FOWNER` | home-assistant |
 | Starts as root, drops itself via setuid | `SETUID`, `SETGID` | mosquitto |
+| Reads SMART data from raw drives, stays root | `SYS_RAWIO`, `SYS_ADMIN`, `SETUID`, `SETGID` | scrutiny |
 | Already starts as a non-root uid, or needs nothing | none | traefik, postgresql, seerr, tautulli, recyclarr, unpackerr, cleanuparr, homepage, uptime-kuma, whisper, piper |
 
 The s6 capabilities are for the init, not the application. s6 chowns `/config`,
@@ -75,7 +77,15 @@ capabilities at all. Mosquitto's entrypoint chowns `/mosquitto/data`, but that
 directory is not mounted, ships owned by `mosquitto`, and the chown is wrapped
 in `|| true`, so it gets no chown capabilities either.
 
-Plex is the one service that maps a host device: `/dev/dri`, for hardware
+Scrutiny holds the strongest set and is the only container with `SYS_ADMIN`. smartctl needs `SYS_RAWIO` for SATA drives
+and `SYS_ADMIN` for the NVMe health log, and Debian cron needs `SETUID` and
+`SETGID` to start the scheduled collector, even as root. Running it as one
+container instead of the hub/spoke split (privileged collector, unprivileged
+web and InfluxDB) gives those capabilities to the web UI too. That was a
+deliberate trade-off for a LAN-only dashboard. See the comment in
+`services/scrutiny/docker-compose.yml`.
+
+Plex is the one service that maps a host GPU device: `/dev/dri`, for hardware
 transcoding on the Ryzen 5600G's iGPU. That needs no extra capability —
 access to a device node is a file-mode check, not a capability check — but it
 does need the host's `render` (107) and `video` (44) gids as supplementary
@@ -89,11 +99,11 @@ it back per-service, with a comment, if that changes.
 
 **Resource limits** (`deploy.resources.limits`) are set only on the small
 always-on services: home-assistant, mosquitto, homepage, uptime-kuma, tautulli,
-whisper and piper. For those, hitting the cap means a bug, not load. The media
-services (plex, qbittorrent, the *arrs, unpackerr, cleanuparr, seerr) and the infra
-(traefik, postgresql, recyclarr) are uncapped on purpose. Their spikes, such
-as transcodes, hash rechecks and RAR extraction, are this host's main job,
-and a wrong cap throttles exactly that work. Follow this split for new services.
+scrutiny, whisper and piper. For those, hitting the cap means a bug, not load.
+The media services (plex, qbittorrent, the *arrs, unpackerr, cleanuparr,
+seerr) and the infra (traefik, postgresql, recyclarr) are uncapped on purpose.
+Their spikes, such as transcodes, hash rechecks and RAR extraction, are this
+host's main job, and a wrong cap throttles exactly that work. Follow this split for new services.
 
 ## Layout
 
@@ -126,6 +136,7 @@ and a wrong cap throttles exactly that work. Follow this split for new services.
     ├── seerr/docker-compose.yml
     ├── tautulli/docker-compose.yml
     ├── uptime-kuma/docker-compose.yml
+    ├── scrutiny/docker-compose.yml
     └── homepage/
         ├── docker-compose.yml
         └── config/               # declarative dashboard config (settings, services, widgets)
@@ -170,7 +181,7 @@ One-time setup on the TrueNAS host:
 docker network create homelab
 
 # Persistent directories (bind mounts)
-mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,plex/transcode,postgresql/pgdata,qbittorrent/config,prowlarr/config,radarr/config,sonarr/config,bazarr/config,recyclarr/config,cleanuparr/config,seerr/config,tautulli/config,uptime-kuma/data,voice-assist/whisper,voice-assist/piper}
+mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,plex/transcode,postgresql/pgdata,qbittorrent/config,prowlarr/config,radarr/config,sonarr/config,bazarr/config,recyclarr/config,cleanuparr/config,seerr/config,tautulli/config,uptime-kuma/data,scrutiny/config,scrutiny/influxdb,voice-assist/whisper,voice-assist/piper}
 
 # unpackerr bind-mounts downloads/ directly. If it does not exist yet Docker
 # creates it root-owned, and qBittorrent (568) can no longer write downloads.
@@ -191,7 +202,9 @@ chown -R 568:568 /mnt/ssd-storage/homelab/{postgresql/pgdata,seerr/config,tautul
 # Uptime Kuma stays root inside the container, and `cap_drop: ALL` takes away
 # DAC_OVERRIDE — so root can only write files it actually owns. A stray
 # kuma.db owned by anyone else fails with `SQLITE_READONLY` in a crash loop.
+# Scrutiny also stays root with no DAC_OVERRIDE, so the same applies.
 chown -R 0:0 /mnt/ssd-storage/homelab/uptime-kuma/data
+chown -R 0:0 /mnt/ssd-storage/homelab/scrutiny/{config,influxdb}
 
 # acme.json must be mode 600 or Traefik refuses to use it. Guarded because
 # `install` replaces an existing file: re-running it would wipe the issued

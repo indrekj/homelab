@@ -52,3 +52,7 @@
         icon: uptime-kuma.png
         href: https://uptime.urgas.eu
         description: Service monitoring
+    - Scrutiny:
+        icon: scrutiny.png
+        href: https://scrutiny.urgas.eu
+        description: Disk health

@@ -1,0 +1,59 @@
+# S.M.A.R.T. history and failure-rate thresholds for the host's drives. The
+# omnibus image runs the web UI, the collector (smartctl on a cron schedule,
+# daily at midnight by default) and its own InfluxDB in one container. It only
+# reads SMART data and never starts self-tests. Those need their own TrueNAS
+# cron jobs. Everything else is configured in its web UI and stored under
+# /opt/scrutiny/config.
+services:
+  scrutiny:
+    image: ghcr.io/analogj/scrutiny:v0.9.5-omnibus
+    container_name: scrutiny
+    restart: unless-stopped
+    environment:
+      TZ: Europe/Tallinn
+    # The image's s6 init and every service in it stay root. With no
+    # DAC_OVERRIDE, root can write only what it owns, so the two bind mounts
+    # must be owned by 0:0. Each capability below was checked on the host by
+    # removing it:
+    #   SYS_RAWIO       smartctl's SATA passthrough to sda/sdb
+    #   SYS_ADMIN       the NVMe admin command that reads the health log.
+    #                   Without it smartctl gets "Permission denied"
+    #   SETUID, SETGID  Debian cron calls setgroups/setuid before every job,
+    #                   even for root. Without them the scheduled collector
+    #                   never runs, silently. Only the run at start works
+    # SYS_ADMIN is close to root, and this is the only container that has it.
+    # The trade-off was accepted for one container over the hub/spoke split
+    # (collector, web and InfluxDB separately) because the UI is LAN only.
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - SYS_RAWIO
+      - SYS_ADMIN
+      - SETUID
+      - SETGID
+    # Kernel names, not /dev/disk/by-id, to keep drive serials out of the repo.
+    # A swap between sda and sdb is harmless, because Scrutiny keys drives by
+    # WWN. A missing node fails the container start, so a removed drive shows
+    # up. NVMe uses the controller nodes, not the nvme0n1 namespaces.
+    devices:
+      - /dev/sda
+      - /dev/sdb
+      - /dev/nvme0
+      - /dev/nvme1
+    volumes:
+      - /run/udev:/run/udev:ro
+      - /mnt/ssd-storage/homelab/scrutiny/config:/opt/scrutiny/config
+      - /mnt/ssd-storage/homelab/scrutiny/influxdb:/opt/scrutiny/influxdb
+    networks:
+      - homelab
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
+networks:
+  homelab:
+    external: true
