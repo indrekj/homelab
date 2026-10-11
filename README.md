@@ -105,6 +105,24 @@ seerr) and the infra (traefik, postgresql, recyclarr) are uncapped on purpose.
 Their spikes, such as transcodes, hash rechecks and RAR extraction, are this
 host's main job, and a wrong cap throttles exactly that work. Follow this split for new services.
 
+**Logs are kept at warning and above.** Most services set this in their
+compose file. Traefik, Home Assistant and PostgreSQL are already there by
+default. Three settings live in app data instead, so a reset config silently
+reverts them:
+
+| Service | Setting | Where |
+|---------|---------|-------|
+| plex | `logDebug="0"` (on by default) | `Preferences.xml`, or Settings → General → Advanced |
+| tautulli | `verbose_logs = 0` (on by default) | `config.ini` |
+| cleanuparr | `log_level = 'warning'` | `general_configs` in `cleanuparr.db`, or Settings → General |
+
+Plex, qBittorrent, Unpackerr, Bazarr, Tautulli, Whisper and Piper have no
+warning level, so they run at their lowest one, info. Sonarr, Radarr and
+Prowlarr send only warnings to stdout but keep their file logs at info,
+because any higher level turns the file logs off completely. Recyclarr is
+left at its default: its cron script passes `RECYCLARR_LOG_LEVEL` as one
+`--log <level>` argument, which recyclarr rejects, so the daily sync fails.
+
 ## Layout
 
 ```
