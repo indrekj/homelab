@@ -7,6 +7,12 @@ services:
       TZ: Europe/Tallinn
       PUID: "568"
       PGID: "568"
+      # stdout (docker logs) gets warnings and errors only. The file logs in
+      # /config/logs stay at info: any LogLevel above info turns them off
+      # completely, and they are what an import problem is debugged from.
+      # Env overrides config.xml, which ships at debug.
+      PROWLARR__LOG__LEVEL: info
+      PROWLARR__LOG__CONSOLELEVEL: warn
     # The s6 init needs these to chown /config and drop to PUID/PGID; Prowlarr
     # itself needs none of them. Everything else — NET_RAW, MKNOD, SYS_PTRACE
     # and friends — is dropped. See services/qbittorrent/docker-compose.yml for
