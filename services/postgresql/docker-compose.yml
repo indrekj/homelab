@@ -39,6 +39,11 @@ services:
       - maintenance_work_mem=16MB
       - -c
       - max_connections=100
+      # log_min_messages is already warning by default, but checkpoint lines
+      # are LOG level, which ranks above warning in the server log, and 15
+      # turns them on by default. They were most of the log.
+      - -c
+      - log_checkpoints=off
     # Postgres needs no capabilities of its own: it starts as 568 rather than
     # dropping from root, and 5432 is unprivileged. Nothing is added back.
     security_opt:
