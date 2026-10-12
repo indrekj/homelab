@@ -23,6 +23,5 @@ include:
   - services/tautulli/docker-compose.yml
   - services/postgresql/docker-compose.yml
   - services/voice-assist/docker-compose.yml
-  - services/uptime-kuma/docker-compose.yml
   - services/scrutiny/docker-compose.yml
   - services/homepage/docker-compose.yml

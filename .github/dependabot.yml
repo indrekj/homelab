@@ -50,8 +50,6 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: rhasspy/*
         update-types: ["version-update:semver-major"]
-      - dependency-name: louislam/uptime-kuma
-        update-types: ["version-update:semver-major"]
       - dependency-name: ghcr.io/analogj/scrutiny
         update-types: ["version-update:semver-major"]
       - dependency-name: ghcr.io/gethomepage/homepage

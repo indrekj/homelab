@@ -11,7 +11,7 @@
 # API — so the container could create privileged containers and take root on
 # the host. Traefik was moved off the socket first (see
 # services/traefik/dynamic/routes.yml); this removed the last holder. Tiles are
-# plain links now; Uptime Kuma covers liveness.
+# plain links now.
 services:
   homepage:
     image: ghcr.io/gethomepage/homepage:v2.2.0
@@ -20,11 +20,10 @@ services:
     environment:
       TZ: Europe/Tallinn
       # Homepage refuses requests whose Host header isn't allow-listed.
-      # homepage:3000 is what an Uptime Kuma probe by container name sends.
       # A hostname added to this service's router rule in
       # services/traefik/dynamic/routes.yml must be mirrored here, or Traefik
       # routes it and Homepage rejects it.
-      HOMEPAGE_ALLOWED_HOSTS: homepage.urgas.eu,home.urgas.eu,homepage:3000
+      HOMEPAGE_ALLOWED_HOSTS: homepage.urgas.eu,home.urgas.eu
       # Default is "both", which also appends to ./config/logs/homepage.log.
       LOG_TARGETS: stdout
       LOG_LEVEL: warn

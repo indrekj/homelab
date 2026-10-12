@@ -2,7 +2,7 @@
 # Homepage no longer mounts the docker socket (see ../docker-compose.yml for
 # why), so `server`/`container` were dropped along with the status-only tiles
 # for Traefik, PostgreSQL, Mosquitto, Whisper and Piper, which had no link and
-# existed purely to render a status dot. Uptime Kuma covers liveness.
+# existed purely to render a status dot.
 - Media:
     - Plex:
         icon: plex.png
@@ -48,10 +48,6 @@
         icon: home-assistant.png
         href: https://homeassistant.urgas.eu
         description: Home automation
-    - Uptime Kuma:
-        icon: uptime-kuma.png
-        href: https://uptime.urgas.eu
-        description: Service monitoring
     - Scrutiny:
         icon: scrutiny.png
         href: https://scrutiny.urgas.eu

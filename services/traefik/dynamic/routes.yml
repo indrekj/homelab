@@ -74,11 +74,6 @@ http:
       entryPoints: [websecure]
       service: tautulli
 
-    uptime-kuma:
-      rule: "Host(`uptime.urgas.eu`)"
-      entryPoints: [websecure]
-      service: uptime-kuma
-
     scrutiny:
       rule: "Host(`scrutiny.urgas.eu`)"
       entryPoints: [websecure]
@@ -139,11 +134,6 @@ http:
       loadBalancer:
         servers:
           - url: "http://tautulli:8181"
-
-    uptime-kuma:
-      loadBalancer:
-        servers:
-          - url: "http://uptime-kuma:3001"
 
     scrutiny:
       loadBalancer:

@@ -26,7 +26,6 @@ and domain. I publish it as a backup and so others can crib from it.
 | cleanuparr     | `ghcr.io/cleanuparr/cleanuparr`    | `cleanuparr.urgas.eu` via Traefik |
 | seerr          | `ghcr.io/seerr-team/seerr`         | `seerr.urgas.eu` via Traefik |
 | tautulli       | `ghcr.io/tautulli/tautulli`        | `tautulli.urgas.eu` via Traefik |
-| uptime-kuma    | `louislam/uptime-kuma`             | `uptime.urgas.eu` via Traefik |
 | scrutiny       | `ghcr.io/analogj/scrutiny`         | `scrutiny.urgas.eu` via Traefik |
 | homepage       | `ghcr.io/gethomepage/homepage`     | `homepage.urgas.eu`, `home.urgas.eu` via Traefik |
 
@@ -62,7 +61,7 @@ There are five shapes:
 | s6 init that stays root | `CHOWN`, `DAC_OVERRIDE`, `FOWNER` | home-assistant |
 | Starts as root, drops itself via setuid | `SETUID`, `SETGID` | mosquitto |
 | Reads SMART data from raw drives, stays root | `SYS_RAWIO`, `SYS_ADMIN`, `SETUID`, `SETGID` | scrutiny |
-| Already starts as a non-root uid, or needs nothing | none | traefik, postgresql, seerr, tautulli, recyclarr, unpackerr, cleanuparr, homepage, uptime-kuma, whisper, piper |
+| Already starts as a non-root uid, or needs nothing | none | traefik, postgresql, seerr, tautulli, recyclarr, unpackerr, cleanuparr, homepage, whisper, piper |
 
 The s6 capabilities are for the init, not the application. s6 chowns `/config`,
 and in the linuxserver images and Plex it then drops to `PUID`/`PGID`, so the
@@ -98,7 +97,7 @@ container on the shared `homelab` bridge. Nothing here currently needs it — ad
 it back per-service, with a comment, if that changes.
 
 **Resource limits** (`deploy.resources.limits`) are set only on the small
-always-on services: home-assistant, mosquitto, homepage, uptime-kuma, tautulli,
+always-on services: home-assistant, mosquitto, homepage, tautulli,
 scrutiny, whisper and piper. For those, hitting the cap means a bug, not load.
 The media services (plex, qbittorrent, the *arrs, unpackerr, cleanuparr,
 seerr) and the infra (traefik, postgresql, recyclarr) are uncapped on purpose.
@@ -155,7 +154,6 @@ left at its default: its cron script passes `RECYCLARR_LOG_LEVEL` as one
     │   └── allowlist/            # malware blocker allowlist: video, subtitles, RAR volumes
     ├── seerr/docker-compose.yml
     ├── tautulli/docker-compose.yml
-    ├── uptime-kuma/docker-compose.yml
     ├── scrutiny/docker-compose.yml
     └── homepage/
         ├── docker-compose.yml
@@ -202,7 +200,7 @@ One-time setup on the TrueNAS host:
 docker network create homelab
 
 # Persistent directories (bind mounts)
-mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,postgresql/pgdata,qbittorrent/config,prowlarr/config,radarr/config,sonarr/config,bazarr/config,recyclarr/config,cleanuparr/config,seerr/config,tautulli/config,uptime-kuma/data,scrutiny/config,scrutiny/influxdb,voice-assist/whisper,voice-assist/piper}
+mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,postgresql/pgdata,qbittorrent/config,prowlarr/config,radarr/config,sonarr/config,bazarr/config,recyclarr/config,cleanuparr/config,seerr/config,tautulli/config,scrutiny/config,scrutiny/influxdb,voice-assist/whisper,voice-assist/piper}
 
 # unpackerr bind-mounts downloads/ directly. If it does not exist yet Docker
 # creates it root-owned, and qBittorrent (568) can no longer write downloads.
@@ -220,11 +218,9 @@ install -d -o 568 -g 568 /mnt/hdd-storage/media/downloads
 # their own chown and are not listed here.
 chown -R 568:568 /mnt/ssd-storage/homelab/{postgresql/pgdata,seerr/config,tautulli/config,recyclarr/config,cleanuparr/config}
 
-# Uptime Kuma stays root inside the container, and `cap_drop: ALL` takes away
-# DAC_OVERRIDE — so root can only write files it actually owns. A stray
-# kuma.db owned by anyone else fails with `SQLITE_READONLY` in a crash loop.
-# Scrutiny also stays root with no DAC_OVERRIDE, so the same applies.
-chown -R 0:0 /mnt/ssd-storage/homelab/uptime-kuma/data
+# Scrutiny stays root inside the container, and `cap_drop: ALL` takes away
+# DAC_OVERRIDE, so root can only write files it actually owns. A stray file
+# owned by anyone else fails with a permission error.
 chown -R 0:0 /mnt/ssd-storage/homelab/scrutiny/{config,influxdb}
 
 # acme.json must be mode 600 or Traefik refuses to use it. Guarded because
