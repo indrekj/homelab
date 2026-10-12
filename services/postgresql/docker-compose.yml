@@ -44,6 +44,18 @@ services:
       # turns them on by default. They were most of the log.
       - -c
       - log_checkpoints=off
+      # Cut SSD writes. Full page images guard against a torn 8K page after
+      # a crash, which ZFS cannot produce because it never commits a partial
+      # write (the OpenZFS workload tuning guide recommends this setting).
+      # They were most of the WAL.
+      - -c
+      - full_page_writes=off
+      # The default 5min rewrote the same few recorder pages 288 times a
+      # day. Crash recovery replays up to 30 minutes of WAL, which takes
+      # seconds at HA's write rate. max_wal_size stays at the 1GB default,
+      # far above 30 minutes of WAL, so checkpoints stay timed.
+      - -c
+      - checkpoint_timeout=30min
     # Postgres needs no capabilities of its own: it starts as 568 rather than
     # dropping from root, and 5432 is unprivileged. Nothing is added back.
     security_opt:
