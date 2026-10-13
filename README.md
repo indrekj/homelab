@@ -199,6 +199,23 @@ One-time setup on the TrueNAS host:
 # Shared network that all services attach to
 docker network create homelab
 
+# App data dataset. The apps make small writes into large files (Postgres 8K
+# pages, SQLite 4K pages, logs), and ZFS rewrites a whole record for each
+# change, so at the 128K default an 8K page write cost 128K. Records below 16K
+# gain little: each changed record also rewrites its 32K indirect block, about
+# 12K after compression. recordsize applies only to newly written files, so
+# changing it later needs a file-level copy (rsync). zfs send keeps old sizes.
+# The move from 128K cut each SSD's writes by about a third.
+zfs create -o recordsize=16K ssd-storage/homelab
+
+# Close a ZFS transaction group (txg) every 15 s instead of 5 s. Each txg has
+# a fixed cost of about 360 KB per SSD, whatever the apps wrote, so this cut
+# each SSD's writes from 103 KB/s to 57 KB/s. A power cut can now lose up to
+# 15 s of writes that apps did not fsync. Postgres fsyncs its commits, so they
+# survive. 30 s would save only about 20% more. The setting is global and a
+# reboot resets it, so a TrueNAS post-init script sets it.
+midclt call initshutdownscript.create '{"type": "COMMAND", "command": "echo 15 > /sys/module/zfs/parameters/zfs_txg_timeout", "when": "POSTINIT"}'
+
 # Persistent directories (bind mounts)
 mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,postgresql/pgdata,qbittorrent/config,prowlarr/config,radarr/config,sonarr/config,bazarr/config,recyclarr/config,cleanuparr/config,seerr/config,tautulli/config,scrutiny/config,scrutiny/influxdb,voice-assist/whisper,voice-assist/piper}
 
