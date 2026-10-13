@@ -28,6 +28,17 @@ radarr:
     quality_definition:
       type: movie
 
+    # TRaSH naming keeps the release group, HDR/DV, audio and edition in the
+    # file name. Without them a rescan after a lost database scores files too
+    # low and downloads them again. `plex-tmdb` writes `{edition-...}`, which
+    # Plex reads as an edition. The folder format applies to new movies only.
+    # It uses CleanTitle, so it drops apostrophes and accents.
+    media_naming:
+      folder: default
+      movie:
+        rename: true
+        standard: plex-tmdb
+
     quality_profiles:
       # Default for movies. Stock UHD Bluray + WEB only enables 2160p; we append
       # the 1080p tiers below so it grabs 4K when available and falls back to
@@ -85,6 +96,18 @@ sonarr:
 
     quality_definition:
       type: series
+
+    # Same reasoning as Radarr above. The series folder must come from here:
+    # a hand-typed `{Release Year}` is a Radarr token, and Sonarr rendered it
+    # empty, which made folders like `Show Name ()`.
+    media_naming:
+      series: default
+      season: default
+      episodes:
+        rename: true
+        standard: default
+        daily: default
+        anime: default
 
     quality_profiles:
       - trash_id: 72dae194fc92bf828f32cde7744e51a1  # WEB-1080p   (default for series)
