@@ -5,7 +5,7 @@
 # mid-extraction and cut the movie off at 6 minutes.
 services:
   unpackerr:
-    image: golift/unpackerr:0.16.1
+    image: golift/unpackerr:1.0.1
     container_name: unpackerr
     restart: unless-stopped
     # No PUID/PGID support; run as the media owner so extracted files stay
@@ -18,6 +18,10 @@ services:
       # something is queued, and at most hourly instead of every minute.
       UN_ACTIVITY: "true"
       UN_LOG_QUEUES: 1h
+      # v1 starts a web UI on 0.0.0.0:5656 unless this is empty. Nothing here
+      # needs it: settings stay in these env vars and the extraction queue
+      # shows in the *arrs.
+      UN_WEBSERVER_LISTEN_ADDR: ""
       # Same env vars recyclarr reads. Set in the root .env; :? fails the up
       # instead of polling with a 401.
       UN_RADARR_0_URL: http://radarr:7878
