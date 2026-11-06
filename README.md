@@ -14,7 +14,8 @@ and domain. I publish it as a backup and so others can crib from it.
 | mosquitto      | `eclipse-mosquitto`                | LAN `:1883` |
 | plex           | `plexinc/pms-docker`               | `plex.urgas.eu` via Traefik, LAN `:32400` |
 | postgresql     | `postgres`                         | internal only (`homelab` network) |
-| qbittorrent    | `lscr.io/linuxserver/qbittorrent`  | `qbittorrent.urgas.eu` via Traefik, `:6881` tcp+udp (peers, forwarded from the internet on the router) |
+| gluetun        | `qmcgaw/gluetun`                   | none on the host. AirVPN forwards the peer port through the tunnel |
+| qbittorrent    | `lscr.io/linuxserver/qbittorrent`  | `qbittorrent.urgas.eu` via Traefik, peers only through gluetun |
 | whisper        | `rhasspy/wyoming-whisper`          | internal only — `whisper:10300` (Wyoming) |
 | piper          | `rhasspy/wyoming-piper`            | internal only — `piper:10200` (Wyoming) |
 | prowlarr       | `lscr.io/linuxserver/prowlarr`     | `prowlarr.urgas.eu` via Traefik |
@@ -32,9 +33,9 @@ and domain. I publish it as a backup and so others can crib from it.
 Tags are deliberately absent here. Every image is pinned to an exact tag in its
 `services/<name>/docker-compose.yml`, and that file is the only place a version
 is recorded — repeating it in this table just meant a second commit after every
-Dependabot bump, and a table that was wrong whenever someone forgot. The one
-service directory that does not match its row is `services/voice-assist/`,
-which defines both whisper and piper.
+Dependabot bump, and a table that was wrong whenever someone forgot. Two
+service directories do not match their rows: `services/voice-assist/` defines
+both whisper and piper, and `services/qbittorrent/` also defines gluetun.
 
 Traefik handles TLS for everything under `urgas.eu` using a Let's Encrypt
 wildcard cert obtained via the Cloudflare DNS-01 challenge.
@@ -53,7 +54,7 @@ put a `docker-socket-proxy` in front of it rather than mounting the socket.
 
 **Every container runs with `cap_drop: ALL` and `no-new-privileges:true`**, and
 adds back only what it demonstrably needs. New services should follow suit.
-There are five shapes:
+There are six shapes:
 
 | Shape | Capabilities added | Services |
 |-------|--------------------|----------|
@@ -61,6 +62,7 @@ There are five shapes:
 | s6 init that stays root | `CHOWN`, `DAC_OVERRIDE`, `FOWNER` | home-assistant |
 | Starts as root, drops itself via setuid | `SETUID`, `SETGID` | mosquitto |
 | Reads SMART data from raw drives, stays root | `SYS_RAWIO`, `SYS_ADMIN`, `SETUID`, `SETGID` | scrutiny |
+| Creates a VPN tunnel and its firewall rules | `NET_ADMIN` | gluetun |
 | Already starts as a non-root uid, or needs nothing | none | traefik, postgresql, seerr, tautulli, recyclarr, unpackerr, cleanuparr, homepage, whisper, piper |
 
 The s6 capabilities are for the init, not the application. s6 chowns `/config`,
@@ -99,7 +101,7 @@ it back per-service, with a comment, if that changes.
 **Resource limits** (`deploy.resources.limits`) are set only on the small
 always-on services: home-assistant, mosquitto, homepage, tautulli,
 scrutiny, whisper and piper. For those, hitting the cap means a bug, not load.
-The media services (plex, qbittorrent, the *arrs, unpackerr, cleanuparr,
+The media services (plex, gluetun, qbittorrent, the *arrs, unpackerr, cleanuparr,
 seerr) and the infra (traefik, postgresql, recyclarr) are uncapped on purpose.
 Their spikes, such as transcodes, hash rechecks and RAR extraction, are this
 host's main job, and a wrong cap throttles exactly that work. Follow this split for new services.
@@ -169,7 +171,7 @@ service, though:
    from the repo root, so a per-directory run needs `--env-file ../../.env`.
    Required secrets use `${VAR:?}`, so without it the up fails with a named
    variable instead of starting misconfigured. traefik, postgresql, recyclarr,
-   unpackerr and plex all read variables.
+   unpackerr, plex and qbittorrent all read variables.
 2. **Relative bind mounts.** traefik (`./dynamic`), mosquitto (`./config`),
    homepage (`./config`), recyclarr (`./config`) and cleanuparr
    (`./allowlist`) mount paths relative to the checkout. Those five cannot be
@@ -292,6 +294,40 @@ setting, and for the "Enable Host header validation" toggle being switched off
 (`HostHeaderValidation=false` in `[WebUI]`), which bypasses the whitelist entirely. A
 reverted whitelist or a disabled check shows up as `unhealthy` in `docker ps`
 instead of passing silently.
+
+### qBittorrent VPN
+
+qBittorrent shares the network of the `gluetun` container, which keeps a
+WireGuard tunnel to AirVPN. Peers and trackers see the AirVPN exit IP, not the
+home IP. The gluetun firewall drops qBittorrent's internet traffic while the
+tunnel is down, so a failed tunnel stops torrents and does not leak. Prowlarr
+and the *arrs stay on the home IP.
+
+The `qbittorrent` hostname is a network alias on gluetun, so Traefik and the
+*arrs still use `http://qbittorrent:8080`.
+
+The peer port is `AIRVPN_PORT` in `.env`. Reserve it under Client Area -> Ports
+for TCP and UDP, and leave its local port empty. qBittorrent must listen on the
+same number as the public port, because it announces its listen port to
+trackers. The router forwards no port for this service.
+
+gluetun picks a Latvian server. Tallinn has one AirVPN server, and it was over
+100% load when this was set up (2026-11-06). Riga had four servers at 27-65%.
+That choice can go stale, so check [AirVPN's status page](https://airvpn.org/status/)
+if speeds drop.
+
+qBittorrent is bound to `tun0` (Options -> Advanced -> Network interface). This
+setting lives in `qBittorrent.conf` as `Session\Interface=tun0` and
+`Session\InterfaceName=tun0`, so a reset config loses it. The healthcheck then
+shows `unhealthy`. It is required. gluetun repairs a dropped tunnel in seconds by creating a new `tun0`. Without
+the binding, qBittorrent never listens on the new interface and stalls until it
+restarts, with nothing wrong in `docker ps`. With it, qBittorrent listened again
+within seconds in three forced reconnects, with no restart.
+
+Known weakness: if the gluetun container itself is restarted or replaced,
+qBittorrent keeps its old, dead network. Plain `docker compose up -d` detects
+this and recreates qBittorrent. `docker compose up -d gluetun` on its own does
+not. After a crash, run `docker compose up -d`. Nothing leaks in that state.
 
 ## Deployment
 

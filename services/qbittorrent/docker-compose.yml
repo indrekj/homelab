@@ -1,4 +1,45 @@
 services:
+  # WireGuard tunnel to AirVPN. qBittorrent shares this container's network, so
+  # its internet traffic can only leave through the tunnel. The gluetun firewall
+  # blocks it while the tunnel is down. See the README's "qBittorrent VPN"
+  # section.
+  gluetun:
+    image: qmcgaw/gluetun:v3.41.3
+    container_name: gluetun
+    restart: unless-stopped
+    environment:
+      TZ: Europe/Tallinn
+      LOG_LEVEL: warn
+      VPN_SERVICE_PROVIDER: airvpn
+      VPN_TYPE: wireguard
+      WIREGUARD_PRIVATE_KEY: ${WIREGUARD_PRIVATE_KEY:?}
+      WIREGUARD_PRESHARED_KEY: ${WIREGUARD_PRESHARED_KEY:?}
+      WIREGUARD_ADDRESSES: ${WIREGUARD_ADDRESSES:?}
+      # The value in AirVPN's generated config.
+      WIREGUARD_MTU: "1320"
+      SERVER_COUNTRIES: Latvia
+      # Opens the port reserved in the AirVPN client area on the tunnel.
+      FIREWALL_VPN_INPUT_PORTS: ${AIRVPN_PORT:?}
+      # Nothing uses the control API, so keep it off the homelab network.
+      HTTP_CONTROL_SERVER_ADDRESS: "127.0.0.1:8000"
+      # Nothing reads the exit IP file, and gluetun cannot write it without
+      # DAC_OVERRIDE, because it creates /tmp/gluetun with no execute bit.
+      PUBLICIP_ENABLED: "off"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    # NET_ADMIN creates the tunnel, its routes and the firewall rules.
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    networks:
+      homelab:
+        # Traefik and the *arrs reach qBittorrent through this container.
+        aliases:
+          - qbittorrent
+
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:5.3.0
     container_name: qbittorrent
@@ -9,10 +50,20 @@ services:
       PUID: "568"
       PGID: "568"
       WEBUI_PORT: "8080"
-      TORRENTING_PORT: "6881"
+      # Must equal the public port, because qBittorrent announces this number
+      # to trackers. The image passes it as a command line flag at every start.
+      TORRENTING_PORT: ${AIRVPN_PORT:?}
+    # No `ports:` or `networks:` here. Both belong to the gluetun container.
+    # restart: true recreates qBittorrent when `docker compose up` replaces
+    # gluetun. Without it, qBittorrent stays in the old network namespace.
+    network_mode: service:gluetun
+    depends_on:
+      gluetun:
+        condition: service_healthy
+        restart: true
     # qBittorrent feeds data from thousands of unauthenticated internet peers
     # into libtorrent's parsers, which makes it the widest attack surface in
-    # the stack — 6881 is forwarded on the router, so those connections are
+    # the stack. The AirVPN port is forwarded to it, so those connections are
     # inbound. Same treatment as Plex: drop every capability, then add back
     # only what the s6 init needs. CHOWN/DAC_OVERRIDE/FOWNER for the /config
     # chown, SETUID/SETGID to drop to PUID/PGID, KILL so the root supervisor
@@ -33,28 +84,24 @@ services:
     # validation is switched off altogether (the key is absent while it is on,
     # so only an explicit `false` is checked). Since qBittorrent 5.3 both keys
     # sit in the [WebUI] section with no prefix. See the README's "qBittorrent
-    # WebUI host whitelist" section.
+    # WebUI host whitelist" section. Also trips when qBittorrent is not bound
+    # to tun0, because it then stalls after every VPN reconnect. See the
+    # README's "qBittorrent VPN" section.
     healthcheck:
       test:
         - CMD-SHELL
         - >-
           grep '^ServerDomains=' /config/qBittorrent/qBittorrent.conf | grep -vq '[*]'
           && ! grep -q '^HostHeaderValidation=false' /config/qBittorrent/qBittorrent.conf
+          && grep -q '^Session\\Interface=tun0' /config/qBittorrent/qBittorrent.conf
       interval: 5m
       start_period: 2m
-    ports:
-      # BitTorrent listen port for peer connectivity; the web UI is only
-      # reachable through Traefik.
-      - "6881:6881"
-      - "6881:6881/udp"
     volumes:
       - /mnt/ssd-storage/homelab/qbittorrent/config:/config
       # Whole media dataset (not just downloads/) so the path matches what
       # Radarr/Sonarr mount and their imports can hardlink instead of copy.
       # Save path in the web UI must be /data/downloads.
       - /mnt/hdd-storage/media:/data
-    networks:
-      - homelab
 
 networks:
   homelab:
