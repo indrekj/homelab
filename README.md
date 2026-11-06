@@ -216,6 +216,12 @@ zfs create -o recordsize=16K ssd-storage/homelab
 # reboot resets it, so a TrueNAS post-init script sets it.
 midclt call initshutdownscript.create '{"type": "COMMAND", "command": "echo 15 > /sys/module/zfs/parameters/zfs_txg_timeout", "when": "POSTINIT"}'
 
+# Remove old images every Saturday, or they pile up with each version bump:
+# 65 unused images held about 19 GB on 2026-11-06. It also removes images with
+# no container yet, and Docker pulls those again on the next deploy. It runs
+# just before the weekly SSD trim at 04:00, so the trim covers the freed blocks.
+midclt call cronjob.create '{"user": "root", "description": "Prune unused Docker images (weekly)", "command": "docker image prune -af", "schedule": {"minute": "30", "hour": "3", "dom": "*", "month": "*", "dow": "6"}}'
+
 # Persistent directories (bind mounts)
 mkdir -p /mnt/ssd-storage/homelab/{traefik,home-assistant/config,plex/config,postgresql/pgdata,qbittorrent/config,prowlarr/config,radarr/config,sonarr/config,bazarr/config,recyclarr/config,cleanuparr/config,seerr/config,tautulli/config,scrutiny/config,scrutiny/influxdb,voice-assist/whisper,voice-assist/piper}
 
