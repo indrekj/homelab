@@ -17,6 +17,23 @@ services:
     cap_add:
       - SETUID
       - SETGID
+    environment:
+      EMS_ESP_MQTT_PASSWORD: ${EMS_ESP_MQTT_PASSWORD:?}
+      HOMEASSISTANT_MQTT_PASSWORD: ${HOMEASSISTANT_MQTT_PASSWORD:?}
+    # Builds the password file from .env on every start, then runs the
+    # image's default command. It goes to /tmp because the config mount is
+    # read-only. Mosquitto reads it only after dropping to its own user, and
+    # root has no CHOWN here, so chmod makes it readable instead. `$$` leaves
+    # the variables for the container's shell, so the passwords do not show
+    # up in the command line.
+    command:
+      - sh
+      - -ec
+      - |
+        mosquitto_passwd -c -b /tmp/passwd ems-esp "$$EMS_ESP_MQTT_PASSWORD"
+        mosquitto_passwd -b /tmp/passwd homeassistant "$$HOMEASSISTANT_MQTT_PASSWORD"
+        chmod 644 /tmp/passwd
+        exec /usr/sbin/mosquitto -c /mosquitto/config/mosquitto.conf
     ports:
       - "1883:1883"
     volumes:

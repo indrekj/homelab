@@ -138,7 +138,7 @@ left at its default: its cron script passes `RECYCLARR_LOG_LEVEL` as one
     ├── home-assistant/docker-compose.yml
     ├── mosquitto/
     │   ├── docker-compose.yml
-    │   └── config/               # mosquitto.conf
+    │   └── config/               # mosquitto.conf, acl
     ├── plex/docker-compose.yml
     ├── postgresql/docker-compose.yml
     ├── qbittorrent/docker-compose.yml
@@ -171,7 +171,7 @@ service, though:
    from the repo root, so a per-directory run needs `--env-file ../../.env`.
    Required secrets use `${VAR:?}`, so without it the up fails with a named
    variable instead of starting misconfigured. traefik, postgresql, recyclarr,
-   unpackerr, plex and qbittorrent all read variables.
+   unpackerr, plex, qbittorrent and mosquitto all read variables.
 2. **Relative bind mounts.** traefik (`./dynamic`), mosquitto (`./config`),
    homepage (`./config`), recyclarr (`./config`) and cleanuparr
    (`./allowlist`) mount paths relative to the checkout. Those five cannot be
@@ -407,6 +407,18 @@ For Shelly devices using **CoIoT**, use the following peer address: `192.168.1.5
 
 Newer Shelly devices (Generation 2 and 3) do not support CoIoT. For these
 devices, use **Mosquitto (MQTT)**: point the device at `192.168.1.55:1883`.
+Shellies connect without a login. The broker's ACL
+(`services/mosquitto/config/acl`) only lets an anonymous client use the topics
+listed for it, so a new Shelly also needs a line there with its device ID, for
+example `topic readwrite shellyplugmg3-907069459164/#`.
+
+### MQTT logins
+
+Home Assistant (user `homeassistant`) and EMS-ESP (user `ems-esp`) log in to
+Mosquitto. Their passwords come from `.env`, and the container builds its
+password file from them at every start. The ACL keeps anonymous clients off
+`ems-esp/#`, so nothing else on the LAN can send commands to the boiler. The
+passwords travel in cleartext, because port 1883 has no TLS.
 Their outbound WebSocket option does not work with this stack: it needs
 `ws://<HA>:8123/api/shelly/ws`, and port 8123 is not published (HA is only
 reachable through Traefik on 443).

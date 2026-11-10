@@ -1,0 +1,18 @@
+# Topic lines before the first `user` line apply to anonymous clients. A
+# client gets only the topics listed for it, so anything not listed here is
+# denied.
+#
+# Anonymous: the Gen2+ Shellies, one line per device. Each one uses its device
+# ID as its topic prefix. A new Shelly needs its own line here.
+topic readwrite shellyplugmg3-907069459164/#
+topic readwrite shellyplugmg3-9070694593e0/#
+topic readwrite shellyplusrgbwpm-3076f53945dc/#
+
+# EMS-ESP (boiler). It also publishes HA discovery configs and listens for
+# HA's `homeassistant/status` to republish them after an HA restart.
+user ems-esp
+topic readwrite ems-esp/#
+topic readwrite homeassistant/#
+
+user homeassistant
+topic readwrite #
