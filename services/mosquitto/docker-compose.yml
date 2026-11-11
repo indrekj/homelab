@@ -25,7 +25,12 @@ services:
     # read-only. Mosquitto reads it only after dropping to its own user, and
     # root has no CHOWN here, so chmod makes it readable instead. `$$` leaves
     # the variables for the container's shell, so the passwords do not show
-    # up in the command line.
+    # up in the command line. /tmp is a tmpfs so every start finds it empty:
+    # a restart reuses the container, and `mosquitto_passwd -c` refuses to
+    # overwrite the file the last run left, which crash-loops the broker. It
+    # also keeps the password hashes off the container's writable layer.
+    tmpfs:
+      - /tmp
     command:
       - sh
       - -ec
