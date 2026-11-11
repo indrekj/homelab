@@ -403,22 +403,22 @@ The one optional variable is `PLEX_CLAIM`, read once at first start.
 
 ### Shelly Devices
 
-For Shelly devices using **CoIoT**, use the following peer address: `192.168.1.55:5683`
+Gen1 Shellies report to Home Assistant over **CoIoT**. Set their peer address
+to `192.168.1.55:5683`.
 
-Newer Shelly devices (Generation 2 and 3) do not support CoIoT. For these
-devices, use **Mosquitto (MQTT)**: point the device at `192.168.1.55:1883`.
-Shellies connect without a login. The broker's ACL
-(`services/mosquitto/config/acl`) only lets an anonymous client use the topics
-listed for it, so a new Shelly also needs a line there with its device ID, for
-example `topic readwrite shellyplugmg3-907069459164/#`.
+Gen2 and newer Shellies need no setup on the device. Home Assistant's Shelly
+integration connects to them over HTTP. Leave their MQTT off: the broker does
+not accept anonymous clients, and nothing reads Shelly topics. Their outbound
+WebSocket option does not work with this stack: it needs
+`ws://<HA>:8123/api/shelly/ws`, and port 8123 is not published (HA is only
+reachable through Traefik on 443).
 
 ### MQTT logins
 
 Home Assistant (user `homeassistant`) and EMS-ESP (user `ems-esp`) log in to
 Mosquitto. Their passwords come from `.env`, and the container builds its
-password file from them at every start. The ACL keeps anonymous clients off
-`ems-esp/#`, so nothing else on the LAN can send commands to the boiler. The
-passwords travel in cleartext, because port 1883 has no TLS.
-Their outbound WebSocket option does not work with this stack: it needs
-`ws://<HA>:8123/api/shelly/ws`, and port 8123 is not published (HA is only
-reachable through Traefik on 443).
+password file from them at every start. The broker refuses anonymous clients,
+so nothing else on the LAN can send commands to the boiler. The passwords
+travel in cleartext, because port 1883 has no TLS. A new MQTT client needs its
+own user: a `.env` variable, a line in the compose `command`, and a section in
+`services/mosquitto/config/acl`.
